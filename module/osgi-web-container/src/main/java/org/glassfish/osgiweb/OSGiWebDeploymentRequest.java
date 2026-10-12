@@ -15,6 +15,7 @@
  */
 package org.glassfish.osgiweb;
 
+import org.glassfish.grizzly.config.dom.NetworkListener;
 import org.glassfish.internal.data.ApplicationInfo;
 import org.glassfish.internal.data.EngineRef;
 import org.glassfish.internal.data.ModuleInfo;
@@ -39,8 +40,6 @@ import org.osgi.framework.ServiceRegistration;
 import com.sun.enterprise.deploy.shared.ArchiveFactory;
 import com.sun.enterprise.web.WebApplication;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -183,49 +182,15 @@ public final class OSGiWebDeploymentRequest extends OSGiDeploymentRequest {
      * Get the default virtual server name.
      * @return the default virtual server
      */
-    @SuppressWarnings("unchecked")
     private String getDefaultVirtualServer() {
-        // Grizzly renamed its package name from com.sun.grizzly to
-        // org.glassfish.grizzly in Grizzly 2.1. Since Grizzly 2.1 is only
-        // integrated into GF3.2 only and we expect our module to work with
-        // GF 3.1.1 as well, we are not relying on Grizzly classes statically.
-        // So, the code below does what the following line would have done.
-        // return Globals.get(com.sun.grizzly.config.dom.NetworkListener.class)
-        // .findHttpProtocol().getHttp().getDefaultVirtualServer();
-        Class netWorkListenerClass;
-        try {
-            netWorkListenerClass = Class.forName(
-                    "com.sun.grizzly.config.dom.NetworkListener");
-        } catch (ClassNotFoundException cnfe) {
-            try {
-                netWorkListenerClass = Class.forName(
-                        "org.glassfish.grizzly.config.dom.NetworkListener");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Object networkListenerObj = Globals.get(netWorkListenerClass);
-        try {
-            Method findHttpProtocolMethod = netWorkListenerClass
-                    .getMethod("findHttpProtocol");
-            Object httpProtocolObj = findHttpProtocolMethod
-                    .invoke(networkListenerObj);
-            final Object httpObj = httpProtocolObj.getClass()
-                    .getMethod("getHttp").invoke(httpProtocolObj);
-            final String defaultVirtualServer = (String) httpObj.getClass()
-                    .getMethod("getDefaultVirtualServer").invoke(httpObj);
-            LOGGER.logp(Level.FINE, "OSGiWebDeploymentRequest",
-                    "getDefaultVirtualServer", "defaultVirtualServer = {0}",
-                    new Object[]{defaultVirtualServer});
-            return defaultVirtualServer;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        final String defaultVirtualServer = Globals.get(NetworkListener.class)
+                .findHttpProtocol().getHttp().getDefaultVirtualServer();
+        LOGGER.logp(Level.FINE, "OSGiWebDeploymentRequest", "getDefaultVirtualServer",
+                "defaultVirtualServer = {0}",
+                new Object[]{defaultVirtualServer});
+        return defaultVirtualServer;
     }
+
 
     @Override
     public void preDeploy() throws DeploymentException {

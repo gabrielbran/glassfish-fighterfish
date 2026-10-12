@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -17,241 +18,237 @@ package org.glassfish.osgihttp;
 
 import com.sun.enterprise.web.WebModule;
 import org.apache.catalina.Container;
-import org.osgi.service.http.HttpContext;
-import org.osgi.service.http.NamespaceException;
 import org.glassfish.web.valve.GlassFishValve;
+import org.osgi.service.servlet.context.ServletContextHelper;
 
 import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
-import java.util.Dictionary;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * This contains most of the implementation of
- * {@link org.osgi.service.http.HttpService}.
+ * Registers servlets in the GlassFish web container.
+ *
+ * All servlets are added to a single root web module (by default mounted at
+ * {@code /osgi}). Servlets registered with the same
+ * {@link ServletContextHelper} share the same {@link ServletContext}.
+ *
+ * This class is used by both the OSGi Servlet Whiteboard runtime and the
+ * legacy OSGi HttpService compatibility layer.
  */
 public final class GlassFishHttpService {
 
-    // TODO(Sahoo): Improve synchronization of this object
     /**
-     * Root context with which all wrappers are registered.
+     * The root web module.
      */
     private final WebModule context;
 
     /**
-     * Map of all contexts.
+     * The servlet contexts, one per servlet context helper.
      */
-    private final Map<HttpContext, OSGiServletContext> servletContextMap
-            = new HashMap<HttpContext, OSGiServletContext>();
+    private final Map<ServletContextHelper, OSGiServletContext>
+            servletContextMap = new IdentityHashMap<>();
+
+    /**
+     * The number of servlets registered per servlet context helper.
+     */
+    private final Map<ServletContextHelper, Integer> servletContextUsage =
+            new IdentityHashMap<>();
 
     /**
      * Create a new instance.
-     * @param ctx the root context
+     * @param ctx the root web module
      */
     public GlassFishHttpService(final WebModule ctx) {
         this.context = ctx;
     }
 
     /**
-     * This method behaves the same way as
-     * {@link org.osgi.service.http.HttpService#registerServlet} except that it
-     * expects a non-null HttpContext object.
-     * @param alias servlet alias
-     * @param servlet the servlet instance
-     * @param initParams the servlet init parameters
-     * @param httpContext the OSGi HTTP context
-     * @throws NamespaceException if an error occurs
-     * @throws ServletException if an error occurs
+     * Get the root web module.
+     * @return WebModule
      */
-    public synchronized void registerServlet(final String alias,
-            final Servlet servlet, final Dictionary initParams,
-            final HttpContext httpContext)
-            throws NamespaceException, ServletException {
+    public WebModule getWebModule() {
+        return context;
+    }
 
-        validateAlias(alias);
-        validateServlet(servlet);
+    /**
+     * Get the context path of the root web module.
+     * @return context path
+     */
+    public String getContextPath() {
+        return context.getPath();
+    }
 
-        OSGiServletContext servletContext
-                = servletContextMap.get(httpContext);
+    /**
+     * Get (and create if needed) the servlet context for the given helper.
+     * @param helper the servlet context helper
+     * @return the servlet context
+     */
+    public synchronized OSGiServletContext getServletContext(
+            final ServletContextHelper helper) {
+
+        OSGiServletContext servletContext = servletContextMap.get(helper);
         if (servletContext == null) {
-            servletContext = new OSGiServletContext(context,
-                    httpContext);
-            servletContextMap.put(httpContext, servletContext);
+            servletContext = new OSGiServletContext(context, helper);
+            servletContextMap.put(helper, servletContext);
         }
+        return servletContext;
+    }
 
-        // Unlike web.xml, here there is no notion of Servlet name,
-        // so we use the alias as the servlet name. It is unique, so no issues.
-        String wrapperName = alias;
-        OSGiServletConfig servletConfig
-                = new OSGiServletConfig(wrapperName, servletContext
-                        .getServletContext(), initParams);
-        OSGiServletWrapper wrapper = new OSGiServletWrapper(
-                wrapperName, servlet, servletConfig, convert(alias),
-                servletContext);
-        wrapper.addValve((GlassFishValve) new OSGiSecurityValve(httpContext));
-        context.addChild(wrapper);
-        try {
-            wrapper.initializeServlet();
-        } catch (Exception e) {
-            throw new ServletException(e); // spec requires this behavior.
+    /**
+     * Release the servlet context for the given helper.
+     * @param helper the servlet context helper
+     */
+    public synchronized void releaseServletContext(
+            final ServletContextHelper helper) {
+
+        if (!servletContextUsage.containsKey(helper)) {
+            servletContextMap.remove(helper);
         }
     }
 
     /**
-     * Register resources with a new resources servlet.
-     * @param alias the alias to use for the created servlet
-     * @param name the name of the created servlet
-     * @param httpContext the OSGi HTTP context
-     * @throws NamespaceException if an error occurs
+     * Register a servlet.
+     * @param name the unique name of the servlet registration, also used as
+     * servlet name
+     * @param patterns the URL patterns, relative to the root web module
+     * @param servlet the servlet
+     * @param initParams the init parameters
+     * @param helper the servlet context helper
+     * @throws ServletException if the servlet fails to initialize
+     * @throws IllegalStateException if the name or one of the patterns is
+     * already in use
      */
-    public synchronized void registerResources(final String alias,
-            final String name, final HttpContext httpContext)
-            throws NamespaceException {
+    public void registerServlet(final String name, final String[] patterns,
+            final Servlet servlet, final Map<String, String> initParams,
+            final ServletContextHelper helper) throws ServletException {
 
-        validateAlias(alias);
-        validateName(name);
-        OSGiResourceServlet servlet =
-                new OSGiResourceServlet(alias, name, httpContext);
-        OSGiServletContext servletContext
-                = servletContextMap.get(httpContext);
-        if (servletContext == null) {
-            servletContext = new OSGiServletContext(context,
-                    httpContext);
-            servletContextMap.put(httpContext, servletContext);
-        }
-
-        // Unlike web.xml, here there is no notion of Servlet name,
-        // so we use the alias as the servlet name. It is unique, so no issues.
-        String wrapperName = alias;
-        OSGiServletConfig servletConfig
-                = new OSGiServletConfig(wrapperName, servletContext
-                        .getServletContext(), null);
-        OSGiServletWrapper wrapper = new OSGiServletWrapper(
-                wrapperName, servlet, servletConfig, convert(alias),
-                servletContext);
-        wrapper.addValve((GlassFishValve) new OSGiSecurityValve(httpContext));
-        context.addChild(wrapper);
-        try {
-            wrapper.initializeServlet();
-        } catch (Exception e) {
-            throw new RuntimeException(e); // should never happen
-        }
+        registerServlet(name, name, patterns, servlet, initParams, helper);
     }
 
     /**
-     * Unregister the servlet with the given alias.
-     * @param alias the alias of the servlet to unregister
-     * @param callDestroy flag that indicates if servlet.destroy should be
-     *  called
+     * Register a servlet.
+     * @param name the unique name of the servlet registration
+     * @param servletName the servlet name exposed by the servlet config
+     * @param patterns the URL patterns, relative to the root web module
+     * @param servlet the servlet
+     * @param initParams the init parameters
+     * @param helper the servlet context helper
+     * @throws ServletException if the servlet fails to initialize
+     * @throws IllegalStateException if the name or one of the patterns is
+     * already in use
      */
-    public synchronized void unregister(final String alias,
+    public synchronized void registerServlet(final String name,
+            final String servletName, final String[] patterns,
+            final Servlet servlet,
+            final Map<String, String> initParams,
+            final ServletContextHelper helper) throws ServletException {
+
+        if (getWrapper(name) != null) {
+            throw new IllegalStateException("name already registered: "
+                    + name);
+        }
+        for (String pattern : patterns) {
+            if (isPatternInUse(pattern)) {
+                throw new IllegalStateException("pattern already in use: "
+                        + pattern);
+            }
+        }
+        OSGiServletContext servletContext = getServletContext(helper);
+        OSGiServletConfig servletConfig = new OSGiServletConfig(servletName,
+                servletContext.getServletContext(),
+                initParams == null
+                        ? Collections.<String, String>emptyMap()
+                        : initParams);
+        OSGiServletWrapper wrapper = new OSGiServletWrapper(name, servlet,
+                servletConfig, patterns, servletContext);
+        wrapper.addValve((GlassFishValve) new OSGiSecurityValve(helper));
+        context.addChild(wrapper);
+        try {
+            wrapper.initializeServlet();
+        } catch (ServletException | RuntimeException e) {
+            context.removeChild(wrapper);
+            releaseServletContext(helper);
+            throw e;
+        }
+        servletContextUsage.merge(helper, 1, Integer::sum);
+    }
+
+    /**
+     * Unregister a servlet.
+     * @param name the name of the servlet registration
+     * @param callDestroy {@code true} if {@code Servlet.destroy} must be
+     * called
+     * @return {@code true} if a registration was removed
+     */
+    public synchronized boolean unregister(final String name,
             final boolean callDestroy) {
 
-        OSGiServletWrapper wrapper = getWrapper(alias);
+        OSGiServletWrapper wrapper = getWrapper(name);
         if (wrapper == null) {
-            throw new IllegalArgumentException(
-                    "No registration exists for " + alias);
+            return false;
         }
         context.removeChild(wrapper);
         if (callDestroy) {
             wrapper.destroyServlet();
         }
-    }
-
-    /**
-     * Get the servlet wrapper for the given alias.
-     * @param alias the alias of the servlet
-     * @return OSGiServletWrapper
-     */
-    private OSGiServletWrapper getWrapper(final String alias) {
-        // The code below does not work, because we call
-        // addMapping() inside OSGiServletWrapper's constructor
-        // and by that time the wrapper has obviously not been added
-        // to the context. When subsequently, wrapper is added to context,
-        // for some reason, context's mapping information is not updated.
-        // So, we always get null.
-        // We must add the mapping in constructor of OSGiServletWrapper, because
-        // at the time the MapperListener received the JMX event for the
-        // Wrapper's mbean, urlPatterns must be configured on the Wrapper.
-
-//        String wrapperName = context.findServletMapping(convert(alias));
-//        if (wrapperName == null) {
-//            throw new IllegalArgumentException(
-//                    "No registration exists for " + alias);
-//        }
-//        return wrapperName;
-
-        // we internally use alias as wrapper name.
-        String wrapperName = alias;
-        OSGiServletWrapper wrapper
-                = (OSGiServletWrapper) context.findChild(wrapperName);
-        return wrapper;
-    }
-
-    /**
-     * Validate that the servlet is not already registered.
-     * @param servlet Servlet to validate
-     * @throws ServletException if it is already registered.
-     */
-    private void validateServlet(final Servlet servlet)
-            throws ServletException {
-
-        for (Container c : context.findChildren()) {
-            if (!(c instanceof OSGiServletWrapper)) {
-                continue;
-            }
-            if (servlet == OSGiServletWrapper.class.cast(c).getServlet()) {
-                throw new ServletException("servlet is already registered");
-            }
-        }
-    }
-
-    /**
-     * Check if the alias s valid as per the spec. The spec requires that: an
-     * alias must begin with slash ('/') and must not end with slash ('/'), with
-     * the exception that an alias of the form "/" is used to denote the root
-     * alias.
-     *
-     * @param alias The alias is the name in the URI namespace of the Http
-     * Service at which the registration will be mapped
-     * @throws IllegalArgumentException if the alias is malformed.
-     * @throws NamespaceException if the alias is already registered.
-     */
-    private void validateAlias(final String alias) throws NamespaceException {
-        if (!alias.equals("/") && (!alias.startsWith("/")
-                || alias.endsWith("/"))) {
-            throw new IllegalArgumentException("malformed alias");
-        }
-        if (getWrapper(alias) != null) {
-            throw new NamespaceException("alias already registered");
-        }
-    }
-
-    /**
-     * Converts an OSGi alias to servlet pattern used by GlassFish/Tomcat.
-     * @param alias alias used by OSGi HTTP Service users
-     * @return servlet pattern used by Tomcat/GlassFish
-     */
-    private String convert(final String alias) {
-        if (alias.equals("/")) {
-            return "/*";
+        ServletContextHelper helper = wrapper.getServletContextHelper();
+        Integer count = servletContextUsage.get(helper);
+        if (count != null && count > 1) {
+            servletContextUsage.put(helper, count - 1);
         } else {
-            return alias + "/*";
+            servletContextUsage.remove(helper);
+            releaseServletContext(helper);
         }
+        return true;
     }
 
     /**
-     * Check if the internal name of a resource is valid or not. The spec
-     * requires that the name parameter in registerResources method must not end
-     * with slash ('/').
-     * @param name the base name of the resource as used in registerResources
-     * method
-     * @throws IllegalArgumentException if the alias is malformed.
+     * Test if a servlet registration exists.
+     * @param name the name of the servlet registration
+     * @return {@code true} if a registration exists
      */
-    private void validateName(final String name) {
-        if (name.endsWith("/")) {
-            throw new IllegalArgumentException("name ends with '/'");
+    public synchronized boolean isRegistered(final String name) {
+        return getWrapper(name) != null;
+    }
+
+    /**
+     * Test if a servlet instance is already registered.
+     * @param servlet the servlet instance
+     * @return {@code true} if the servlet is registered
+     */
+    public synchronized boolean isRegistered(final Servlet servlet) {
+        for (Container c : context.findChildren()) {
+            if (c instanceof OSGiServletWrapper
+                    && servlet == OSGiServletWrapper.class.cast(c)
+                            .getServlet()) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    /**
+     * Test if a URL pattern is already mapped.
+     * @param pattern the URL pattern
+     * @return {@code true} if the pattern is mapped
+     */
+    public synchronized boolean isPatternInUse(final String pattern) {
+        return context.findServletMapping(pattern) != null;
+    }
+
+    /**
+     * Get the wrapper for a given registration name.
+     * @param name the registration name
+     * @return OSGiServletWrapper or {@code null} if not found
+     */
+    private OSGiServletWrapper getWrapper(final String name) {
+        Container c = context.findChild(name);
+        if (c instanceof OSGiServletWrapper) {
+            return (OSGiServletWrapper) c;
+        }
+        return null;
     }
 }

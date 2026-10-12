@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -25,26 +26,25 @@ import com.sun.enterprise.web.WebModuleConfig;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.session.StandardManager;
 import org.apache.catalina.startup.ContextConfig;
+import org.glassfish.grizzly.config.dom.NetworkListener;
 import org.glassfish.api.admin.ServerEnvironment;
 import org.glassfish.embeddable.GlassFish;
 import org.glassfish.embeddable.GlassFishException;
 import org.glassfish.internal.api.ClassLoaderHierarchy;
+import org.glassfish.osgihttp.compat.HttpServiceCompat;
+import org.glassfish.osgihttp.whiteboard.WhiteboardRuntime;
 import org.glassfish.osgijavaeebase.Extender;
 import org.glassfish.web.valve.GlassFishValve;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.http.HttpService;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,13 +55,16 @@ import org.apache.catalina.Manager;
 import org.apache.catalina.Realm;
 
 /**
- * This is the entry point to our implementation of OSGi/HTTP service. For every
- * virtual server in the configuration, it creates HTTPService. Every service
- * has same context path. The context path can be defined by user using
- * configuration property org.glassfish.web.osgihttp.ContextPath. If it is
- * absent, we use a default value of "/osgi." After initializing the HttpService
- * factory with necessary details, we register the factory OSGi service
- * registry.
+ * This is the entry point to our implementation of the OSGi Servlet
+ * Whiteboard and of the legacy OSGi/HTTP service. For every virtual server in
+ * the configuration, it creates a root web module. Every root web module has
+ * same context path. The context path can be defined by user using
+ * configuration property org.glassfish.osgihttp.ContextPath. If it is
+ * absent, we use a default value of "/osgi".
+ * <p>
+ * The OSGi Servlet Whiteboard runtime is started for the default virtual
+ * server. A legacy HttpService factory is registered for every virtual server
+ * if the javax.servlet based compatibility layer is available.
  */
 public final class Activator implements BundleActivator {
 
@@ -98,8 +101,13 @@ public final class Activator implements BundleActivator {
     /**
      * List of HTTPService OSGi service registration.
      */
-    private final List<ServiceRegistration> registrations =
-            new ArrayList<ServiceRegistration>();
+    private final List<ServiceRegistration<?>> registrations =
+            new ArrayList<ServiceRegistration<?>>();
+
+    /**
+     * The OSGi Servlet Whiteboard runtime.
+     */
+    private WhiteboardRuntime whiteboard;
 
     /**
      * The GlassFish service.
@@ -153,16 +161,26 @@ public final class Activator implements BundleActivator {
                 }
                 GlassFishHttpService httpService =
                         new GlassFishHttpService(standardContext);
-                Dictionary props = new Properties();
-                props.put("VirtualServer", vsId);
                 if (vsId.equals(defaultVsId)) {
-                    props.put(Constants.SERVICE_RANKING, Integer.MAX_VALUE);
+                    whiteboard = new WhiteboardRuntime(bctx, httpService);
+                    whiteboard.start();
                 }
-                ServiceRegistration registration = bctx
-                        .registerService(HttpService.class.getName(),
-                        new HttpServiceWrapper.HttpServiceFactory(httpService),
-                        props);
-                registrations.add(registration);
+                if (HttpServiceCompat.isAvailable()) {
+                    Hashtable<String, Object> props =
+                            new Hashtable<String, Object>();
+                    props.put("VirtualServer", vsId);
+                    if (vsId.equals(defaultVsId)) {
+                        props.put(Constants.SERVICE_RANKING,
+                                Integer.MAX_VALUE);
+                    }
+                    registrations.add(HttpServiceCompat.register(bctx,
+                            httpService, props));
+                } else if (vsId.equals(defaultVsId)) {
+                    LOGGER.logp(Level.INFO, "Activator", "doActualWork",
+                            "Legacy OSGi HttpService not available: install"
+                            + " the javax.servlet 4 API and the Apache Felix"
+                            + " HTTP wrappers bundles to enable it.");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -200,9 +218,6 @@ public final class Activator implements BundleActivator {
         // TODO(Sahoo): Need to set proper values for these directories
         standardContext.setDocBase(System.getProperty("java.io.tmpdir"));
         standardContext.setWorkDir(System.getProperty("java.io.tmpdir"));
-//         standardContext.setJ2EEServer(
-//                 System.getProperty("com.sun.aas.instanceName"));
-        standardContext.setJ2EEServer(getInstanceName());
         standardContext.addLifecycleListener(new ContextConfig());
         Realm realm = gf.getService(Realm.class);
         standardContext.setRealm(realm);
@@ -253,9 +268,14 @@ public final class Activator implements BundleActivator {
      * Unregister the HTTP service.
      */
     private void undoActualWork() {
-        for (ServiceRegistration registration : registrations) {
+        if (whiteboard != null) {
+            whiteboard.stop();
+            whiteboard = null;
+        }
+        for (ServiceRegistration<?> registration : registrations) {
             registration.unregister();
         }
+        registrations.clear();
         for (Host vs : vss.values()) {
             StandardContext standardContext
                     = StandardContext.class.cast(vs.findChild(contextPath));
@@ -349,49 +369,16 @@ public final class Activator implements BundleActivator {
      * @return the default virtual server
      * @throws GlassFishException if an error occurs
      */
-    @SuppressWarnings("unchecked")
     private String getDefaultVirtualServer() throws GlassFishException {
-        // Grizzly renamed its package name from com.sun.grizzly to
-        // org.glassfish.grizzly in Grizzly 2.1. Since Grizzly 2.1 is only
-        // integrated into GF3.2 only and we expect our module to work with
-        // GF 3.1.1 as well, we are not relying on Grizzly classes statically.
-        // So, the code below does what the following line would have done.
-        // return Globals.get(com.sun.grizzly.config.dom.NetworkListener.class)
-        // .findHttpProtocol().getHttp().getDefaultVirtualServer();
-        Class netWorkListenerClass;
-        try {
-            netWorkListenerClass = Class.forName(
-                    "com.sun.grizzly.config.dom.NetworkListener");
-        } catch (ClassNotFoundException cnfe) {
-            try {
-                netWorkListenerClass = Class.forName(
-                        "org.glassfish.grizzly.config.dom.NetworkListener");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Object networkListenerObj = gf.getService(netWorkListenerClass);
-        try {
-            Method findHttpProtocolMethod = netWorkListenerClass
-                    .getMethod("findHttpProtocol");
-            Object httpProtocolObj = findHttpProtocolMethod
-                    .invoke(networkListenerObj);
-            final Object httpObj = httpProtocolObj.getClass()
-                    .getMethod("getHttp").invoke(httpProtocolObj);
-            final String defaultVirtualServer = (String) httpObj.getClass()
-                    .getMethod("getDefaultVirtualServer").invoke(httpObj);
-            LOGGER.logp(Level.INFO, "Activator", "getDefaultVirtualServer",
-                    "defaultVirtualServer = {0}",
-                    new Object[]{defaultVirtualServer});
-            return defaultVirtualServer;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        final String defaultVirtualServer = gf
+                .getService(NetworkListener.class).findHttpProtocol()
+                .getHttp().getDefaultVirtualServer();
+        LOGGER.logp(Level.INFO, "Activator", "getDefaultVirtualServer",
+                "defaultVirtualServer = {0}",
+                new Object[]{defaultVirtualServer});
+        return defaultVirtualServer;
     }
+
 
     /**
      * Extender for the OSGi HTTP module.

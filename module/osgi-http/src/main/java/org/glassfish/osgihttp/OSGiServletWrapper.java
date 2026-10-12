@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -19,6 +20,7 @@ import com.sun.enterprise.web.WebModule;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.core.StandardWrapper;
 import org.glassfish.web.valve.GlassFishValve;
+import org.osgi.service.servlet.context.ServletContextHelper;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletContext;
@@ -26,13 +28,13 @@ import jakarta.servlet.ServletException;
 import java.util.Set;
 
 /**
- * Unlike Java EE Web Application model, there is no notion of "context path" in
- * OSGi HTTP service spec. Here the servlets can specify which context they
- * belong to by passing a {@link org.osgi.service.http.HttpContext} object.
- * Those HttpContext objects don't have any "path" attribute. As a result, all
- * the OSGi/HTTP servlets belonging to the same servlet context may not have any
- * of the path common to them. Internally, we register all the OSGi servlets
- * (actually we register {@link OSGiServletWrapper} with the same
+ * Servlets registered with the OSGi HTTP service or the OSGi Servlet
+ * Whiteboard specify which servlet context they belong to with a
+ * {@link org.osgi.service.servlet.context.ServletContextHelper} (the legacy
+ * HttpService {@code HttpContext} objects are adapted to it). All the OSGi
+ * servlets belonging to the same servlet context may not have any of the path
+ * common to them. Internally, we register all the OSGi servlets (actually we
+ * register {@link OSGiServletWrapper} with the same
  * {@link org.apache.catalina.Context} object. So we need a way to demultiplex
  * the OSGi servlet context.
  */
@@ -64,8 +66,8 @@ public final class OSGiServletWrapper extends StandardWrapper
      * @param gfWebModule the GlassFish webModule
      */
     public OSGiServletWrapper(final String name, final Servlet sInstance,
-            final OSGiServletConfig sConfig, final String urlMapping,
-            final WebModule gfWebModule) {
+            final OSGiServletConfig sConfig, final String[] urlMappings,
+            final OSGiServletContext gfWebModule) {
 
         this.servlet = sInstance;
         this.config = sConfig;
@@ -77,7 +79,9 @@ public final class OSGiServletWrapper extends StandardWrapper
         setOSGi(true);
         setServlet(sInstance);
         setName(name);
-        addMapping(urlMapping);
+        for (String urlMapping : urlMappings) {
+            addMapping(urlMapping);
+        }
     }
 
     @Override
@@ -110,7 +114,7 @@ public final class OSGiServletWrapper extends StandardWrapper
     public ServletContext getServletContext() {
         // We can't use super.getServletContext, as that would get us the
         // ServletContext that's common for all OSGi/HTTP servlets, where as
-        // we need the servlet context registered for each HttpContext.
+        // we need the servlet context registered for each ServletContextHelper.
         return config.getServletContext();
     }
 
@@ -149,5 +153,13 @@ public final class OSGiServletWrapper extends StandardWrapper
      */
     public WebModule getWebModule() {
         return webModule;
+    }
+
+    /**
+     * Get the servlet context helper of this servlet.
+     * @return ServletContextHelper
+     */
+    public ServletContextHelper getServletContextHelper() {
+        return ((OSGiServletContext) webModule).getServletContextHelper();
     }
 }

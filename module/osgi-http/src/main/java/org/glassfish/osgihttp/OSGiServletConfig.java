@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -18,7 +19,6 @@ package org.glassfish.osgihttp;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,17 +51,12 @@ public final class OSGiServletConfig implements ServletConfig {
      * @param sInitparams the servlet init parameters
      */
     public OSGiServletConfig(final String sName, final ServletContext sCtx,
-            final Dictionary sInitparams) {
+            final Map<String, String> sInitparams) {
 
         this.servletName = sName;
         this.servletContext = sCtx;
         if (sInitparams != null) {
-            Enumeration e = sInitparams.keys();
-            while (e.hasMoreElements()) {
-                final Object key = e.nextElement();
-                this.initParams.put((String) key,
-                        (String) sInitparams.get(key));
-            }
+            this.initParams.putAll(sInitparams);
         }
     }
 

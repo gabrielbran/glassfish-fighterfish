@@ -206,6 +206,12 @@
                         </supportedProjectTypes>
                         <instructions>
                             <Export-Package />
+                            <!--
+                                GlassFish exports org.glassfish.embeddable
+                                from the system bundle, without version.
+                            -->
+                            <Import-Package>org.glassfish.embeddable.*;version="0",*</Import-Package>
+                            <_noimportjava>true</_noimportjava>
                             <_include>-${osgi.includefile}</_include>
                         </instructions>
                     </configuration>
