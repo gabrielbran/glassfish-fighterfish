@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2012, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -135,7 +136,13 @@ final class DolAdapter {
 
             Method m = delegate.getClass().getMethod(method.getName(),
                     method.getParameterTypes());
-            return m.invoke(delegate, args);
+            Object result = m.invoke(delegate, args);
+            // e.g. GlassFish 8 returns JNDI names as SimpleJndiName
+            if (result != null && method.getReturnType() == String.class
+                    && !(result instanceof String)) {
+                return result.toString();
+            }
+            return result;
         }
 
         /**

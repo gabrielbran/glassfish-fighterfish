@@ -218,6 +218,12 @@
                             -->
                             <Import-Package>org.glassfish.embeddable.*;version="0",*</Import-Package>
                             <_noimportjava>true</_noimportjava>
+                            <!--
+                                FighterFish provides its own CDI integration,
+                                not the OSGi CDI Integration specification:
+                                don't require the osgi.cdi extender.
+                            -->
+                            <_cdiannotations />
                             <_include>-${osgi.includefile}</_include>
                         </instructions>
                     </configuration>

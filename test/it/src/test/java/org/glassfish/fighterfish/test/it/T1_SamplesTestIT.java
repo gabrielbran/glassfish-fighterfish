@@ -250,9 +250,9 @@ public class T1_SamplesTestIT extends AbstractTestObject {
                 "osgihttp_helloworld_sample_test", "ENTRY");
         TestContext tc = TestContext.create(getClass());
         try {
-            HttpService httpService = OSGiUtil.getService(ctx,
-                    HttpService.class);
-            assertNull(httpService);
+            // osgi-http is no longer lazily activated: it also provides the
+            // OSGi Servlet Whiteboard. Restart it to test it can be restarted.
+            HttpService httpService;
             for (Bundle b : ctx.getBundles()) {
                 if ("org.glassfish.fighterfish.osgi-http".equals(
                         b.getSymbolicName())) {

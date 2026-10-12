@@ -27,6 +27,34 @@
     <artifactId>osgi-http</artifactId>
     <name>FighterFish OSGi HTTP Service</name>
 
+    <build>
+        <plugins>
+            <plugin>
+                <!--
+                    The OSGi Servlet Whiteboard and HttpService APIs are
+                    exported by this bundle: include their classes.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>include-osgi-http-apis</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>org.osgi</includeGroupIds>
+                            <includeArtifactIds>org.osgi.service.servlet,org.osgi.service.http</includeArtifactIds>
+                            <includes>org/osgi/service/**</includes>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.glassfish.main.web</groupId>

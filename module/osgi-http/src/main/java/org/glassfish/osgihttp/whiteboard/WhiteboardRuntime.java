@@ -654,7 +654,7 @@ public final class WhiteboardRuntime {
         String name = e.name(servlet);
         WhiteboardServlet ws = new WhiteboardServlet(this, ctx.id, name,
                 servlet);
-        String regName = "whiteboard:servlet:" + e.serviceId();
+        String regName = "whiteboard.servlet." + e.serviceId();
         http.registerServlet(regName, name, e.effectivePatterns,
                 ws, e.initParams(
                 HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_INIT_PARAM_PREFIX),
@@ -684,7 +684,7 @@ public final class WhiteboardRuntime {
                 } else {
                     alias = pattern;
                 }
-                String name = "whiteboard:resource:" + e.serviceId() + ":" + i;
+                String name = "whiteboard.resource." + e.serviceId() + "." + i;
                 WhiteboardServlet ws = new WhiteboardServlet(this, ctx.id,
                         name, new OSGiResourceServlet(alias, prefix,
                                 e.helper));

@@ -42,7 +42,7 @@ final class HttpServiceRegistry {
      * Prefix of the registration names, distinguishing them from the
      * registrations made by the whiteboard runtime.
      */
-    private static final String NAME_PREFIX = "httpservice:";
+    private static final String NAME_PREFIX = "httpservice";
 
     /**
      * The underlying service.

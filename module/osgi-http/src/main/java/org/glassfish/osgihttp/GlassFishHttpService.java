@@ -146,6 +146,12 @@ public final class GlassFishHttpService {
             final Map<String, String> initParams,
             final ServletContextHelper helper) throws ServletException {
 
+        // the name is part of the JMX object name of the servlet, which the
+        // web container needs to map requests to the servlet
+        if (name.indexOf(':') >= 0 || name.indexOf(',') >= 0
+                || name.indexOf('=') >= 0) {
+            throw new IllegalArgumentException("invalid name: " + name);
+        }
         if (getWrapper(name) != null) {
             throw new IllegalStateException("name already registered: "
                     + name);

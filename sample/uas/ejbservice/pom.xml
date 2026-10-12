@@ -35,7 +35,7 @@
                         </goals>
                         <configuration>
                             <includeArtifactIds>fighterfish-sample-uas-entities</includeArtifactIds>
-                            <excludes>**/EntitiesActivator.class</excludes>
+                            <excludes>**/EntitiesActivator.class,META-INF/MANIFEST.MF</excludes>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                         </configuration>
                     </execution>
