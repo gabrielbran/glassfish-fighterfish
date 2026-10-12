@@ -87,7 +87,7 @@ public final class TestsConfiguration {
                 .getProperty(GLASSFISH_INSTALL_ROOT_PROP);
         if (installRoot != null && !installRoot.isEmpty()) {
             gfHome = new File(installRoot);
-            File glassfishJar = new File(gfHome, "modules/glassfish.jar");
+            File glassfishJar = new File(gfHome, "modules/glassfish-osgi-bootstrap.jar");
             if (!glassfishJar.exists()) {
                 throw new RuntimeException(glassfishJar.getAbsolutePath()
                         + " does not exist.");

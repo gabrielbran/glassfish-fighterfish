@@ -32,7 +32,7 @@
 
     <properties>
         <stage.dir>${project.build.directory}/stage</stage.dir>
-        <glassfish.install.dir>${stage.dir}/glassfish5/glassfish</glassfish.install.dir>
+        <glassfish.install.dir>${stage.dir}/glassfish8/glassfish</glassfish.install.dir>
     </properties>
 
     <build>
@@ -118,7 +118,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dfile.encoding=UTF-8 -Djava.endorsed.dirs=${glassfish.install.dir}/modules/endorsed -Dmaven.repo.local=${maven.repo.local}</argLine>
+                    <argLine>${glassfish.jvm.options} -Dfile.encoding=UTF-8 -Dmaven.repo.local=${maven.repo.local}</argLine>
                     <systemPropertyVariables>
                         <project.version>${project.version}</project.version>
                         <derby.stream.error.file>${project.build.directory}/derby.log</derby.stream.error.file>
@@ -135,11 +135,21 @@
                         <!--<fighterfish.test.timeout>2000000</fighterfish.test.timeout>-->
                         <sun.net.http.retryPost>false</sun.net.http.retryPost>
                     </systemPropertyVariables>
+                    <!-- packages exported by the system bundle, see PaxExamConfigurator -->
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish-jdk-extensions.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish-jul-extension.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/simple-glassfish-api.jar</additionalClasspathElement>
+                    </additionalClasspathElements>
                     <classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.glassfish.main.common:simple-glassfish-api</classpathDependencyExcludes>
                         <classpathDependencyExcludes>org.osgi</classpathDependencyExcludes>
                         <classpathDependencyExcludes>javax.*:*</classpathDependencyExcludes>
                         <classpathDependencyExcludes>jakarta.*:*</classpathDependencyExcludes>
                         <classpathDependencyExcludes>org.glassfish.main.osgi-platforms:felix-webconsole-extension</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.apache.felix:org.apache.felix.scr</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.apache.felix:org.apache.felix.http.wrappers</classpathDependencyExcludes>
                         <classpathDependencyExcludes>org.glassfish.fighterfish:osgi-*</classpathDependencyExcludes>
                         <classpathDependencyExcludes>org.glassfish.fighterfish:fighterfighs-test*</classpathDependencyExcludes>
                         <classpathDependencyExcludes>org.glassfish.fighterfish:fighterfighs-sample*</classpathDependencyExcludes>
@@ -158,6 +168,41 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.component</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.metatype</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.util.function</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.util.promise</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.wrappers</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.fighterfish</groupId>
             <artifactId>fighterfish-test-util</artifactId>

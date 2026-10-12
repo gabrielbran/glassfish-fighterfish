@@ -40,6 +40,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -215,8 +216,13 @@ public final class Activator implements BundleActivator {
         standardContext.setWebContainer(webContainer);
         standardContext.setName(contextPath);
         standardContext.setPath(contextPath);
-        // TODO(Sahoo): Need to set proper values for these directories
-        standardContext.setDocBase(System.getProperty("java.io.tmpdir"));
+        // GlassFish 8 expects the document base to look like an exploded
+        // web application (it looks up WEB-INF/classes before the web
+        // application class loader is started).
+        File docBase = bctx.getDataFile("docroot-" + vsId);
+        new File(docBase, "WEB-INF/classes").mkdirs();
+        new File(docBase, "WEB-INF/lib").mkdirs();
+        standardContext.setDocBase(docBase.getAbsolutePath());
         standardContext.setWorkDir(System.getProperty("java.io.tmpdir"));
         standardContext.addLifecycleListener(new ContextConfig());
         Realm realm = gf.getService(Realm.class);

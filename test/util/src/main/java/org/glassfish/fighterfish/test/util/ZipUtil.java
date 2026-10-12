@@ -49,7 +49,7 @@ public final class ZipUtil {
      * @throws Exception if an error occurs
      */
     private static boolean needToExplode(final File dest) throws Exception {
-        if (new File(dest, "glassfish5").isDirectory()) {
+        if (new File(dest, "glassfish8").isDirectory()) {
             return false;
         }
         if (dest.isFile()) {
