@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -22,11 +22,11 @@ import org.glassfish.web.valve.GlassFishValve;
 import org.osgi.service.servlet.context.ServletContextHelper;
 
 import jakarta.servlet.Servlet;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Registers servlets in the GlassFish web container.
@@ -165,9 +165,8 @@ public final class GlassFishHttpService {
         OSGiServletContext servletContext = getServletContext(helper);
         OSGiServletConfig servletConfig = new OSGiServletConfig(servletName,
                 servletContext.getServletContext(),
-                initParams == null
-                        ? Collections.<String, String>emptyMap()
-                        : initParams);
+                Objects.requireNonNullElse(initParams,
+                        Collections.<String, String>emptyMap()));
         OSGiServletWrapper wrapper = new OSGiServletWrapper(name, servlet,
                 servletConfig, patterns, servletContext);
         wrapper.addValve((GlassFishValve) new OSGiSecurityValve(helper));

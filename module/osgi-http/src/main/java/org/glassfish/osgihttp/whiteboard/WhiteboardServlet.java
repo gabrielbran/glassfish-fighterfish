@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Servlet registered in the web container for a whiteboard servlet or
@@ -111,9 +112,10 @@ final class WhiteboardServlet implements Servlet {
                 path);
         List<ServletRequestListener> listeners =
                 runtime.getRequestListeners(contextId);
-        ServletContext sc = config == null
-                ? null
-                : config.getServletContext();
+        ServletContext sc = null;
+        if (config != null) {
+            sc = config.getServletContext();
+        }
         ServletRequestEvent event = new ServletRequestEvent(sc, req);
         for (ServletRequestListener l : listeners) {
             l.requestInitialized(event);
@@ -147,11 +149,12 @@ final class WhiteboardServlet implements Servlet {
             return "/";
         }
         HttpServletRequest hreq = (HttpServletRequest) req;
-        String servletPath = hreq.getServletPath();
-        String pathInfo = hreq.getPathInfo();
-        String path = (servletPath == null ? "" : servletPath)
-                + (pathInfo == null ? "" : pathInfo);
-        return path.isEmpty() ? "/" : path;
+        String path = Objects.toString(hreq.getServletPath(), "")
+                + Objects.toString(hreq.getPathInfo(), "");
+        if (path.isEmpty()) {
+            return "/";
+        }
+        return path;
     }
 
     /**

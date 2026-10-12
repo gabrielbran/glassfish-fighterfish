@@ -4,11 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Improvements
-
-### Fixes
+## [4.0.0]
 
 ### Notes
+
+Major changes:
+
+- Target GlassFish 8.0.4: Jakarta EE 11, Apache Felix 7.0.5 (OSGi Core R8),
+ HK2 4, Weld 6, EclipseLink 5, Mojarra 4.1
+- Require JDK 21
+- Rename `javax.*` Java EE APIs to `jakarta.*` in all modules, samples and
+ tests
+- osgi-http: implement the OSGi Servlet Whiteboard 2.0 specification
+ (`org.osgi.service.servlet`) and provide the OSGi `HttpService` through the
+ Apache Felix wrappers when the `javax.servlet` API is available
+- osgi-web-container: adapt the WAB class loader to the final
+ `WebappClassLoader` of GlassFish 8
+- osgi-jpa: accept `persistence.xml` files using the Java EE namespaces
+- osgi-cdi: register the CDI extension under the Jakarta service name
+- Test applications using JSF migrated to Facelets and CDI named beans
+ (Jakarta Faces 4 removed JSP and managed beans)
+- Integration tests run GlassFish 8.0.4 embedded in Felix with Pax Exam 4.14
 
 ## [3.0.0]
 

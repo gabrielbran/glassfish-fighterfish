@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -62,7 +62,7 @@ public final class OSGiServletWrapper extends StandardWrapper
      * @param name the servlet name
      * @param sInstance the servlet to wrap
      * @param sConfig the servlet config
-     * @param urlMapping the URL mapping
+     * @param urlMappings the URL mappings
      * @param gfWebModule the GlassFish webModule
      */
     public OSGiServletWrapper(final String name, final Servlet sInstance,

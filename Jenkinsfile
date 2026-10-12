@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation. All rights reserved.
  * Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -24,14 +24,14 @@ pipeline {
     skipStagesAfterUnstable()
     // show timestamps in logs
     timestamps()
-    // global timeout, abort after 6 hours
-    timeout(time: 20, unit: 'MINUTES')
+    // global timeout, abort after 90 minutes
+    timeout(time: 90, unit: 'MINUTES')
   }
   stages {
     stage('build') {
       agent any
       tools {
-        jdk 'temurin-jdk8-latest'
+        jdk 'temurin-jdk21-latest'
         maven 'apache-maven-latest'
       }
       steps {

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -65,7 +65,11 @@ public final class OSGiResourceServlet extends HttpServlet {
     public OSGiResourceServlet(final String sAlias, final String sName,
             final ServletContextHelper sHttpCtx) {
 
-        this.alias = "/".equals(sAlias) ? "" : sAlias;
+        if ("/".equals(sAlias)) {
+            this.alias = "";
+        } else {
+            this.alias = sAlias;
+        }
         this.name = sName;
         this.httpContext = sHttpCtx;
     }
@@ -111,9 +115,10 @@ public final class OSGiResourceServlet extends HttpServlet {
     private String getResourcePath(final HttpServletRequest req) {
         String servletPath = req.getServletPath();
         String pathInfo = req.getPathInfo();
-        String requestedPath = pathInfo == null
-                ? servletPath
-                : servletPath + pathInfo;
+        String requestedPath = servletPath;
+        if (pathInfo != null) {
+            requestedPath += pathInfo;
+        }
         if (requestedPath.contains("..")) {
             return null;
         }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2011, 2019 Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2011, 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -340,9 +340,11 @@ public final class PaxExamConfigurator {
 
         try (JarInputStream jis = new JarInputStream(jar.openStream())) {
             Manifest mf = jis.getManifest();
-            String value = mf == null
-                    ? null
-                    : mf.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
+            String value = null;
+            if (mf != null) {
+                value = mf.getMainAttributes()
+                        .getValue(Constants.EXPORT_PACKAGE);
+            }
             if (value != null && !value.trim().isEmpty()) {
                 exports.add(value);
             }

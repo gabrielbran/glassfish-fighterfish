@@ -66,6 +66,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -96,6 +97,9 @@ import java.util.regex.PatternSyntaxException;
  */
 public final class WhiteboardRuntime {
 
+    /**
+     * The logger.
+     */
     private static final Logger LOGGER = Logger.getLogger(
             WhiteboardRuntime.class.getPackage().getName());
 
@@ -539,9 +543,8 @@ public final class WhiteboardRuntime {
 
         Object select = e.ref.getProperty(
                 HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT);
-        String selectFilter = select == null
-                ? DEFAULT_CONTEXT_SELECT
-                : String.valueOf(select);
+        String selectFilter = Objects.toString(select,
+                DEFAULT_CONTEXT_SELECT);
         Filter filter;
         try {
             filter = bctx.createFilter(selectFilter);
@@ -568,7 +571,10 @@ public final class WhiteboardRuntime {
     private void bind(final Element e, final ContextInfo ctx) {
         e.failureReason = -1;
         Bundle bundle = e.ref.getBundle();
-        BundleContext ebc = bundle == null ? null : bundle.getBundleContext();
+        BundleContext ebc = null;
+        if (bundle != null) {
+            ebc = bundle.getBundleContext();
+        }
         if (ebc == null) {
             e.failureReason = DTOConstants.FAILURE_REASON_SERVICE_NOT_GETTABLE;
             return;
@@ -581,9 +587,10 @@ public final class WhiteboardRuntime {
         ServiceObjects<ServletContextHelper> helperObjects =
                 (ServiceObjects<ServletContextHelper>) ebc.getServiceObjects(
                         ctx.ref);
-        ServletContextHelper helper = helperObjects == null
-                ? null
-                : helperObjects.getService();
+        ServletContextHelper helper = null;
+        if (helperObjects != null) {
+            helper = helperObjects.getService();
+        }
         if (helper == null) {
             e.failureReason =
                     DTOConstants.FAILURE_REASON_SERVLET_CONTEXT_FAILURE;
@@ -594,9 +601,10 @@ public final class WhiteboardRuntime {
         if (e.kind != Kind.RESOURCE) {
             serviceObjects = (ServiceObjects<Object>) bctx.getServiceObjects(
                     e.ref);
-            service = serviceObjects == null
-                    ? null
-                    : serviceObjects.getService();
+            service = null;
+            if (serviceObjects != null) {
+                service = serviceObjects.getService();
+            }
             if (service == null) {
                 helperObjects.ungetService(helper);
                 e.failureReason =
@@ -877,9 +885,10 @@ public final class WhiteboardRuntime {
      */
     synchronized RuntimeDTO getRuntimeDTO() {
         RuntimeDTO dto = new RuntimeDTO();
-        dto.serviceDTO = runtimeReg == null
-                ? null
-                : runtimeReg.getReference().adapt(ServiceReferenceDTO.class);
+        if (runtimeReg != null) {
+            dto.serviceDTO = runtimeReg.getReference()
+                    .adapt(ServiceReferenceDTO.class);
+        }
         dto.preprocessorDTOs = new PreprocessorDTO[0];
         dto.failedPreprocessorDTOs = new FailedPreprocessorDTO[0];
         dto.failedErrorPageDTOs = new FailedErrorPageDTO[0];
@@ -916,9 +925,10 @@ public final class WhiteboardRuntime {
             if (e.context != null) {
                 continue;
             }
-            int reason = e.failureReason < 0
-                    ? DTOConstants.FAILURE_REASON_UNKNOWN
-                    : e.failureReason;
+            int reason = e.failureReason;
+            if (reason < 0) {
+                reason = DTOConstants.FAILURE_REASON_UNKNOWN;
+            }
             switch (e.kind) {
                 case SERVLET:
                     FailedServletDTO fs = new FailedServletDTO();
@@ -991,9 +1001,10 @@ public final class WhiteboardRuntime {
             dto.resourceDTO = new ResourceDTO();
             fillResourceDTO(dto.resourceDTO, match, match.context.id);
         }
-        String servletName = match.kind == Kind.SERVLET
-                ? match.name(match.service)
-                : null;
+        String servletName = null;
+        if (match.kind == Kind.SERVLET) {
+            servletName = match.name(match.service);
+        }
         List<FilterDTO> filters = new ArrayList<FilterDTO>();
         for (Element f : boundFilters) {
             if (f.context == match.context
@@ -1031,9 +1042,10 @@ public final class WhiteboardRuntime {
             final ContextInfo ctx) {
 
         dto.name = ctx.name;
-        dto.contextPath = ctx.path == null || "/".equals(ctx.path)
-                ? http.getContextPath()
-                : http.getContextPath() + ctx.path;
+        dto.contextPath = http.getContextPath();
+        if (ctx.path != null && !"/".equals(ctx.path)) {
+            dto.contextPath += ctx.path;
+        }
         dto.serviceId = ctx.id;
         dto.initParams = ctx.initParams();
         dto.attributes = Collections.<String, Object>emptyMap();
@@ -1113,7 +1125,7 @@ public final class WhiteboardRuntime {
                 HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PATTERN);
         Object prefix = e.ref.getProperty(
                 HttpWhiteboardConstants.HTTP_WHITEBOARD_RESOURCE_PREFIX);
-        dto.prefix = prefix == null ? null : String.valueOf(prefix);
+        dto.prefix = Objects.toString(prefix, null);
     }
 
     /**
@@ -1194,10 +1206,10 @@ public final class WhiteboardRuntime {
             this.id = (Long) sref.getProperty(Constants.SERVICE_ID);
             Object n = sref.getProperty(
                     HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_NAME);
-            this.name = n instanceof String ? (String) n : null;
+            this.name = stringValue(n);
             Object p = sref.getProperty(
                     HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_PATH);
-            this.path = p instanceof String ? (String) p : null;
+            this.path = stringValue(p);
         }
 
         /**
@@ -1224,6 +1236,18 @@ public final class WhiteboardRuntime {
     }
 
     /**
+     * Get a property value if it is a string.
+     * @param value the property value
+     * @return the string, or {@code null}
+     */
+    private static String stringValue(final Object value) {
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return null;
+    }
+
+    /**
      * Collect the service properties having a given prefix.
      * @param ref the service reference
      * @param prefix the prefix
@@ -1237,7 +1261,7 @@ public final class WhiteboardRuntime {
             if (key.startsWith(prefix)) {
                 Object value = ref.getProperty(key);
                 result.put(key.substring(prefix.length()),
-                        value == null ? null : String.valueOf(value));
+                        Objects.toString(value, null));
             }
         }
         return result;
@@ -1360,9 +1384,11 @@ public final class WhiteboardRuntime {
          * @return name
          */
         String name(final Object obj) {
-            String property = kind == Kind.FILTER
-                    ? HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME
-                    : HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME;
+            String property =
+                    HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME;
+            if (kind == Kind.FILTER) {
+                property = HttpWhiteboardConstants.HTTP_WHITEBOARD_FILTER_NAME;
+            }
             Object n = ref.getProperty(property);
             if (n != null) {
                 return String.valueOf(n);
@@ -1488,11 +1514,13 @@ public final class WhiteboardRuntime {
 
         @Override
         public String toString() {
+            String bsn = "?";
+            if (ref.getBundle() != null) {
+                bsn = ref.getBundle().getSymbolicName();
+            }
             return kind.name().toLowerCase() + " service "
                     + ref.getProperty(Constants.SERVICE_ID) + " of bundle "
-                    + (ref.getBundle() == null
-                            ? "?"
-                            : ref.getBundle().getSymbolicName());
+                    + bsn;
         }
     }
 

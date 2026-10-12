@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
+ * Copyright (c) 2009, 2019 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -149,8 +150,7 @@ public final class HttpServiceWrapper implements HttpService {
         while (e.hasMoreElements()) {
             Object key = e.nextElement();
             Object value = initParams.get(key);
-            map.put(String.valueOf(key),
-                    value == null ? null : String.valueOf(value));
+            map.put(String.valueOf(key), Objects.toString(value, null));
         }
         return map;
     }
