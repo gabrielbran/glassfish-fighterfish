@@ -20,6 +20,7 @@ import com.sun.enterprise.config.serverbeans.Config;
 import com.sun.enterprise.config.serverbeans.Domain;
 import com.sun.enterprise.config.serverbeans.Server;
 import com.sun.enterprise.config.serverbeans.VirtualServer;
+import com.sun.enterprise.deployment.WebBundleDescriptor;
 import com.sun.enterprise.web.WebContainer;
 import com.sun.enterprise.web.WebModule;
 import com.sun.enterprise.web.WebModuleConfig;
@@ -34,6 +35,7 @@ import org.glassfish.internal.api.ClassLoaderHierarchy;
 import org.glassfish.osgihttp.compat.HttpServiceCompat;
 import org.glassfish.osgihttp.whiteboard.WhiteboardRuntime;
 import org.glassfish.osgijavaeebase.Extender;
+import org.glassfish.web.deployment.descriptor.WebBundleDescriptorImpl;
 import org.glassfish.web.valve.GlassFishValve;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -41,6 +43,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -235,6 +238,7 @@ public final class Activator implements BundleActivator {
 //        wmConfig.setAppClassLoader(getCommonClassLoader());
         standardContext.setParentClassLoader(getCommonClassLoader(gf));
         standardContext.setWebModuleConfig(wmConfig);
+        setEmptyDescriptor(standardContext, wmConfig);
 
         // See  See GLASSFISH-16764 for more details about this valve
         standardContext.addValve((GlassFishValve) new OSGiHttpContextValve());
@@ -255,6 +259,32 @@ public final class Activator implements BundleActivator {
      * @return ClassLoader
      * @throws GlassFishException if an error occurs
      */
+    /**
+     * Set an empty deployment descriptor on the root web module.
+     * GlassFish 8 expects every {@link WebModule} to have a descriptor when
+     * it starts (see {@code WebModule.contextListenerStart}), but the setter
+     * is not public.
+     *
+     * @param webModule the root web module
+     * @param wmConfig the web module configuration
+     */
+    private void setEmptyDescriptor(final WebModule webModule,
+            final WebModuleConfig wmConfig) {
+
+        WebBundleDescriptorImpl wbd = new WebBundleDescriptorImpl();
+        wbd.setContextRoot(webModule.getPath());
+        wmConfig.setDescriptor(wbd);
+        try {
+            Method setter = WebModule.class.getDeclaredMethod(
+                    "setWebBundleDescriptor", WebBundleDescriptor.class);
+            setter.setAccessible(true);
+            setter.invoke(webModule, wbd);
+        } catch (ReflectiveOperationException | RuntimeException ex) {
+            LOGGER.log(Level.WARNING,
+                    "Unable to set the descriptor of " + webModule, ex);
+        }
+    }
+
     private ClassLoader getCommonClassLoader(final GlassFish gfService)
             throws GlassFishException {
 

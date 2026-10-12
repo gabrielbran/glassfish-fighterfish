@@ -21,6 +21,7 @@ import org.glassfish.fighterfish.test.util.StringPatternMatcher;
 import org.glassfish.fighterfish.test.util.TestContext;
 import org.glassfish.fighterfish.test.util.TestsConfiguration;
 import org.glassfish.fighterfish.test.util.WebAppBundle;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Option;
@@ -30,9 +31,9 @@ import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.ops4j.pax.exam.Configuration;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.BundleException;
 
-import jakarta.inject.Inject;
 import java.io.IOException;
 import org.glassfish.fighterfish.test.util.Version;
 
@@ -67,8 +68,16 @@ public class PaxExamJunitRunnerIT {
      * This is how one can inject BundleContext. In fact, one can even inject
      * provisioned services.
      */
-    @Inject
     private BundleContext ctx;
+
+    /**
+     * Initialize the bundle context. Pax-Exam 4 only injects fields annotated
+     * with {@code javax.inject.Inject}, which GlassFish 8 does not provide.
+     */
+    @Before
+    public void initBundleContext() {
+        ctx = FrameworkUtil.getBundle(getClass()).getBundleContext();
+    }
 
     /**
      * PaxExamJunit driver treats methods in Junit Test class annotated with

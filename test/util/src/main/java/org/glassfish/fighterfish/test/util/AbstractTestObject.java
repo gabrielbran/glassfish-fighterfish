@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -15,6 +16,7 @@
  */
 package org.glassfish.fighterfish.test.util;
 
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.Configuration;
@@ -22,8 +24,8 @@ import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
-import jakarta.inject.Inject;
 import java.io.IOException;
 
 /**
@@ -52,11 +54,20 @@ import java.io.IOException;
 public abstract class AbstractTestObject {
 
     /**
-     * Bundle context.
+     * Bundle context of the test (probe) bundle.
      */
-    @Inject
     @SuppressWarnings("checkstyle:VisibilityModifier")
     protected BundleContext ctx;
+
+    /**
+     * Initialize {@link #ctx}. Pax-Exam 4 only injects fields annotated with
+     * {@code javax.inject.Inject}, which GlassFish 8 does not provide, so the
+     * bundle context is looked up instead.
+     */
+    @Before
+    public void initBundleContext() {
+        ctx = FrameworkUtil.getBundle(getClass()).getBundleContext();
+    }
 
     /**
      * PaxExamJunit driver treats methods in JUnit Test class annotated with

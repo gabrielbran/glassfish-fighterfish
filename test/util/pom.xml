@@ -129,12 +129,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
+                    <!-- one JVM per test class: GlassFish 8 does not support
+                         being started several times in the same JVM -->
+                    <reuseForks>false</reuseForks>
                     <argLine>${glassfish.jvm.options} -Dfile.encoding=UTF-8 -Dmaven.repo.local=${maven.repo.local}</argLine>
                     <systemPropertyVariables>
                         <derby.stream.error.file>${project.build.directory}/derby.log</derby.stream.error.file>
                         <org.glassfish.startupThreadPolicy>FULLY_THREADED</org.glassfish.startupThreadPolicy>
                         <com.sun.aas.installRoot>${glassfish.install.dir}</com.sun.aas.installRoot>
                         <com.sun.aas.instanceRoot>${glassfish.install.dir}/domains/domain1</com.sun.aas.instanceRoot>
+                        <com.sun.aas.derbyRoot>${glassfish.install.dir}/../javadb</com.sun.aas.derbyRoot>
                         <org.osgi.framework.storage>${project.build.directory}/osgi-cache</org.osgi.framework.storage>
                         <fighterfish.test.setup.timeout>200000</fighterfish.test.setup.timeout>
                         <!-- DEBUG friendly -->

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Distribution License v. 1.0, which is available at
@@ -12,11 +13,12 @@ package org.glassfish.fighterfish.sample.testing.failsafe;
 import org.glassfish.fighterfish.test.util.FighterFishJUnitRunner;
 import org.glassfish.fighterfish.test.util.TestContext;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
-import jakarta.inject.Inject;
 
 /**
  * This sample test demonstrates use of a custom JUnit test runner called
@@ -39,8 +41,16 @@ public class FighterFishJUnitRunnerIT {
      * This is how one can inject BundleContext. In fact, one can even inject
      * provisioned services.
      */
-    @Inject
     private BundleContext ctx;
+
+    /**
+     * Initialize the bundle context. Pax-Exam 4 only injects fields annotated
+     * with {@code javax.inject.Inject}, which GlassFish 8 does not provide.
+     */
+    @Before
+    public void initBundleContext() {
+        ctx = FrameworkUtil.getBundle(getClass()).getBundleContext();
+    }
 
     @Test
     public void test() throws Exception {
