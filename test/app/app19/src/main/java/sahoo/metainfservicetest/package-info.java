@@ -22,5 +22,5 @@
 //
 
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://java.sun.com/xml/ns/persistence", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://java.sun.com/xml/ns/persistence", elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package sahoo.metainfservicetest;

@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.glassfish.fighterfish</groupId>
         <artifactId>fighterfish-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>fighterfish-test-parent</artifactId>
     <name>FighterFish Test Parent</name>

@@ -20,9 +20,9 @@ import org.glassfish.osgicdi.ServiceUnavailableException;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.inject.Inject;
 
 import java.util.Dictionary;
 import java.util.Properties;

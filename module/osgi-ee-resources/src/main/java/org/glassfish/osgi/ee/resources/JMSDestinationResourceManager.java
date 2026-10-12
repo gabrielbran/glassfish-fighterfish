@@ -22,8 +22,8 @@ import com.sun.enterprise.config.serverbeans.Resources;
 import org.glassfish.connectors.config.AdminObjectResource;
 import org.osgi.framework.BundleContext;
 
-import javax.jms.Queue;
-import javax.jms.Topic;
+import jakarta.jms.Queue;
+import jakarta.jms.Topic;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Properties;

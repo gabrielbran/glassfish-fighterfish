@@ -13,10 +13,10 @@ import org.glassfish.fighterfish.sample.uas.api.UserAuthService;
 import org.glassfish.fighterfish.sample.uas.entities.LoginAttempt;
 import org.glassfish.fighterfish.sample.uas.entities.UserCredential;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.ejb.Local;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
 /**

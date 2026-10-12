@@ -18,8 +18,8 @@ package org.glassfish.fighterfish.test.app17;
 
 import org.glassfish.osgicdi.OSGiService;
 
-import javax.inject.Inject;
-import javax.jws.WebService;
+import jakarta.inject.Inject;
+import jakarta.jws.WebService;
 
 /**
  * Hello web service.

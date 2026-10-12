@@ -16,4 +16,4 @@
 
 # Yes, we are currently at 1.0 version of the package
 -exportcontents: org.glassfish.osgicdi; version=1.0
-Import-Package: javax.inject; version="[1.0, 2.0)", org.osgi.framework
+Import-Package: jakarta.inject; version="[2.0, 3.0)", org.osgi.framework

@@ -15,8 +15,8 @@
  */
 package org.glassfish.fighterfish.test.app18;
 
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
+import jakarta.ejb.DependsOn;
+import jakarta.ejb.Singleton;
 
 /**
  * Session Bean implementation class FooEJB.

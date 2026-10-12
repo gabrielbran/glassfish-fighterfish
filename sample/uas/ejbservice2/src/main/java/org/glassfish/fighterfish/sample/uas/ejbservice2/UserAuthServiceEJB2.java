@@ -14,11 +14,11 @@ import org.glassfish.fighterfish.sample.uas.entities.LoginAttempt;
 import org.glassfish.fighterfish.sample.uas.entities.UserCredential;
 import org.glassfish.osgicdi.OSGiService;
 
-import javax.ejb.Local;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.ejb.Local;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 
 /**

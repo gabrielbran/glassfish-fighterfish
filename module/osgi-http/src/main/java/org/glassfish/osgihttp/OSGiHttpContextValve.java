@@ -21,7 +21,7 @@ import org.apache.catalina.Response;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.valves.ValveBase;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

@@ -16,7 +16,7 @@
 
 package org.glassfish.fighterfish.test.app11.ejb;
 
-import javax.ejb.Local;
+import jakarta.ejb.Local;
 
 /**
  * Local EJB interface.

@@ -16,7 +16,7 @@
 
 package org.glassfish.fighterfish.test.app11.ejb;
 
-import javax.ejb.Remote;
+import jakarta.ejb.Remote;
 
 /**
  * A remote EJB interface.

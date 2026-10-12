@@ -16,7 +16,7 @@
 
 package sahoo.metainfservicetest;
 
-import javax.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBContext;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import org.osgi.framework.BundleActivator;

@@ -23,7 +23,7 @@
 
 package org.glassfish.osgijpa.dd;
 
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 
 /**

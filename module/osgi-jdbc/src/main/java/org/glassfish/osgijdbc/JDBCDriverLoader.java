@@ -15,7 +15,7 @@
  */
 package org.glassfish.osgijdbc;
 
-import com.sun.enterprise.util.SystemPropertyConstants;
+import org.glassfish.embeddable.GlassFishVariable;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,7 +64,7 @@ public final class JDBCDriverLoader {
      * Constant for GlassFish vendor mapping file location.
      */
     private static final String DBVENDOR_MAPPINGS_ROOT = System.getProperty(
-            SystemPropertyConstants.INSTALL_ROOT_PROPERTY) + File.separator
+            GlassFishVariable.INSTALL_ROOT.getSystemPropertyName()) + File.separator
             + "lib" + File.separator + "install" + File.separator + "databases"
             + File.separator + "dbvendormapping" + File.separator;
 

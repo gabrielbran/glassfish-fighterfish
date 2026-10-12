@@ -13,12 +13,12 @@ import org.glassfish.fighterfish.sample.uas.api.UserAuthService;
 import org.glassfish.fighterfish.sample.uas.entities.LoginAttempt;
 import org.glassfish.fighterfish.sample.uas.entities.UserCredential;
 
-import javax.persistence.EntityManager;
-import javax.transaction.NotSupportedException;
-import javax.transaction.SystemException;
-import javax.transaction.UserTransaction;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.UserTransaction;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**

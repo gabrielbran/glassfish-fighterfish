@@ -25,13 +25,13 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.spi.PersistenceProvider;
+import jakarta.persistence.spi.PersistenceProvider;
 
 import org.glassfish.hk2.osgiresourcelocator.ServiceLoader;
 
 /**
  * This is a custom implementation of
- * {@link javax.persistence.spi.PersistenceProviderResolver} which has the
+ * {@link jakarta.persistence.spi.PersistenceProviderResolver} which has the
  * ability to discover providers that are part of OSGi bundles. As you know, a
  * thread's context loader (TCL) is very widely assumed to represent what an
  * application can see. This is no different in JPA as well. However, there
@@ -45,23 +45,23 @@ import org.glassfish.hk2.osgiresourcelocator.ServiceLoader;
  * to limit visibility, hence it goes onto discover all providers installed in
  * the current framework. To discover providers installed by OSGi bundles, it
  * currently relies on provider bundles to have
- * META-INF/services/javax.persistence.PersistenceProvider file as every JPA
+ * META-INF/services/jakarta.persistence.PersistenceProvider file as every JPA
  * compliant provider bundles such a resource. In future, we can even enhance
  * this class to discover PersistenceProvider service registered by OSGi/JPA
  * compliant bundles.
  * <p/>
  * As per the requirement of JPA spec, this implementation is thread-safe.
  * Please note, this class comes into picture even in Java EE mode usage of JPA
- * via {@link javax.persistence.spi.PersistenceProvider#getProviderUtil()},
+ * via {@link jakarta.persistence.spi.PersistenceProvider#getProviderUtil()},
  * which is the only way to call methods like
- * {@link javax.persistence.spi.ProviderUtil#isLoaded(Object)}. So, it is
+ * {@link jakarta.persistence.spi.ProviderUtil#isLoaded(Object)}. So, it is
  * important for this class to be performant. So, this class also supports
  * caching mode which can be explicitly enabled at construction time. Caching
  * should only be enabled in environment where providers are not
  * installed/uninstalled dynamically.
  */
 public final class HybridPersistenceProviderResolver implements
-        javax.persistence.spi.PersistenceProviderResolver {
+        jakarta.persistence.spi.PersistenceProviderResolver {
 
     /**
      * Logger.
@@ -69,7 +69,7 @@ public final class HybridPersistenceProviderResolver implements
     private static final Logger LOGGER = Logger.getLogger(
             HybridPersistenceProviderResolver.class.getPackage().getName());
 
-    // Yes, I am fully aware that eclipselink produced javax.persistence bundle
+    // Yes, I am fully aware that eclipselink produced jakarta.persistence bundle
     // also has an activator
     // which has code to set a custom resolver, but that resolver only works for
     // RFC#143 compliant OSGi JPA providers.

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.glassfish.fighterfish</groupId>
         <artifactId>fighterfish-test-app-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>fighterfish-test-app-14</artifactId>
     <name>FighterFish Test App 14</name>
@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <artifactId>osgi.core</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

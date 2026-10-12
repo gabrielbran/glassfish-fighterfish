@@ -613,7 +613,7 @@ public class T2_TestIT extends AbstractTestObject {
                     testAppLocation("test-app-16-entities"));
             bundle_entities.start();
             Object service = OSGiUtil.waitForService(ctx, bundle_entities,
-                    "javax.persistence.EntityManagerFactory", getTimeout());
+                    "jakarta.persistence.EntityManagerFactory", getTimeout());
             Assert.assertNotNull(
                     "Checking for EMF svc registered by entities bundle",
                     service);

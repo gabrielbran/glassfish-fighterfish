@@ -18,8 +18,8 @@ package org.glassfish.osgijpa.extension;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import javax.persistence.spi.PersistenceProviderResolver;
-import javax.persistence.spi.PersistenceProviderResolverHolder;
+import jakarta.persistence.spi.PersistenceProviderResolver;
+import jakarta.persistence.spi.PersistenceProviderResolverHolder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

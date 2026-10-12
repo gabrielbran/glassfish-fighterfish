@@ -17,14 +17,14 @@ package org.glassfish.osgiweb;
 
 import com.sun.faces.spi.AnnotationProvider;
 
-import javax.faces.component.FacesComponent;
-import javax.faces.component.behavior.FacesBehavior;
-import javax.faces.convert.FacesConverter;
-import javax.faces.event.NamedEvent;
-import javax.faces.render.FacesBehaviorRenderer;
-import javax.faces.render.FacesRenderer;
-import javax.faces.validator.FacesValidator;
-import javax.servlet.ServletContext;
+import jakarta.faces.component.FacesComponent;
+import jakarta.faces.component.behavior.FacesBehavior;
+import jakarta.faces.convert.FacesConverter;
+import jakarta.faces.event.NamedEvent;
+import jakarta.faces.render.FacesBehaviorRenderer;
+import jakarta.faces.render.FacesRenderer;
+import jakarta.faces.validator.FacesValidator;
+import jakarta.servlet.ServletContext;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Collection;
@@ -158,7 +158,6 @@ public final class OSGiFacesAnnotationScanner extends AnnotationProvider {
                 FacesConverter.class,
                 FacesValidator.class,
                 FacesRenderer.class,
-                javax.faces.bean.ManagedBean.class,
                 NamedEvent.class,
                 FacesBehavior.class,
                 FacesBehaviorRenderer.class);

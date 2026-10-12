@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
 import org.glassfish.osgicdi.OSGiService;
 import org.glassfish.osgicdi.ServiceUnavailableException;

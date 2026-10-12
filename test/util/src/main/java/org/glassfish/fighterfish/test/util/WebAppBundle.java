@@ -24,7 +24,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;

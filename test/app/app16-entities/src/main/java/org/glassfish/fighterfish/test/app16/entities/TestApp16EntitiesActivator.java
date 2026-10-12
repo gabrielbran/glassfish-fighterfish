@@ -18,8 +18,8 @@ package org.glassfish.fighterfish.test.app16.entities;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 import java.util.Properties;
 import java.util.Dictionary;

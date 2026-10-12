@@ -42,7 +42,7 @@ public final class EntityBundle {
      * Services registered by entity bundles.
      */
     private static final String[] SERVICES = {
-        "javax.persistence.EntityManagerFactory"
+        "jakarta.persistence.EntityManagerFactory"
     };
 
     /**

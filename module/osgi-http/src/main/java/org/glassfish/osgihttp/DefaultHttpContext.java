@@ -19,8 +19,8 @@ package org.glassfish.osgihttp;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URL;
 

@@ -17,10 +17,10 @@
 package org.glassfish.fighterfish.test.app16.mdb;
 
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.InvocationContext;
+import jakarta.ejb.ActivationConfigProperty;
+import jakarta.ejb.MessageDriven;
+import jakarta.interceptor.AroundInvoke;
+import jakarta.interceptor.InvocationContext;
 
 /**
  * Message-Driven Bean implementation class for: TestApp16MDB.
@@ -29,7 +29,7 @@ import javax.interceptor.InvocationContext;
         activationConfig = {
             @ActivationConfigProperty(
                     propertyName = "destinationType",
-                    propertyValue = "javax.jms.Topic"
+                    propertyValue = "jakarta.jms.Topic"
             )},
         mappedName = "jms/fighterfish.TestApp16Topic"
 )

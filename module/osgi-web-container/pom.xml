@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.glassfish.fighterfish</groupId>
         <artifactId>fighterfish-module-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>osgi-web-container</artifactId>
     <name>FighterFish OSGi Web Container</name>
@@ -48,7 +48,7 @@
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <artifactId>osgi.core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

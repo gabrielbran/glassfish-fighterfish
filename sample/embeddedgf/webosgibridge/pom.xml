@@ -17,7 +17,7 @@
     <parent>
         <groupId>org.glassfish.fighterfish</groupId>
         <artifactId>fighterfish-sample-embeddedgf-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>fighterfish-sample-embeddedgf-webosgibridge</artifactId>
     <name>FighterFish Sample Embedded GF Web/OSGi Bridge</name>
@@ -108,7 +108,7 @@
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <artifactId>osgi.core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

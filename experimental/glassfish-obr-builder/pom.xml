@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.glassfish.fighterfish</groupId>
         <artifactId>fighterfish-experimental-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>glassfish-obr-builder</artifactId>
     <name>FighterFish Experiment OBR Builder</name>
@@ -35,7 +35,7 @@
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <artifactId>osgi.core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

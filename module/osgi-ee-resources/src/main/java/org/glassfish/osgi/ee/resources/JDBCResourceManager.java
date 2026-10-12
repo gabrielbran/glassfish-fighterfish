@@ -15,6 +15,7 @@
  */
 package org.glassfish.osgi.ee.resources;
 
+import org.glassfish.api.naming.SimpleJndiName;
 import com.sun.enterprise.config.serverbeans.BindableResource;
 import com.sun.enterprise.config.serverbeans.Domain;
 import com.sun.enterprise.config.serverbeans.ResourceRef;
@@ -89,7 +90,8 @@ public final class JDBCResourceManager extends BaseResourceManager
                     && resRef.getEnabled().equalsIgnoreCase("true")) {
                 String poolName = resource.getPoolName();
                 JdbcConnectionPool pool = (JdbcConnectionPool) getResources()
-                        .getResourceByName(JdbcConnectionPool.class, poolName);
+                        .getResourceByName(JdbcConnectionPool.class,
+                        SimpleJndiName.of(poolName));
                 String className = pool.getDatasourceClassname();
                 // no need to use res-type to get driver/datasource-classname
                 // as either datasource-classname or driver-classname

@@ -15,8 +15,8 @@
  */
 package org.glassfish.fighterfish.test.app10.bean;
 
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.NoneScoped;
+import jakarta.faces.bean.ManagedBean;
+import jakarta.faces.bean.NoneScoped;
 
 /**
  * Simple JSF managed bean.

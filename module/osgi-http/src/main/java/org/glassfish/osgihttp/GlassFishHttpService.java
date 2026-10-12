@@ -21,8 +21,8 @@ import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.NamespaceException;
 import org.glassfish.web.valve.GlassFishValve;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;

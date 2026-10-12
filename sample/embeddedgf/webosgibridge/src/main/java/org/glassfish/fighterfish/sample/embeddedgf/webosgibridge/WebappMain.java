@@ -10,10 +10,10 @@
 
 package org.glassfish.fighterfish.sample.embeddedgf.webosgibridge;
 
-import javax.annotation.Resource;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import jakarta.annotation.Resource;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
 
 /**
  * Main entry point.

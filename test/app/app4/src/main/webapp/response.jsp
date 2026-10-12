@@ -18,9 +18,9 @@
 
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<%@ page import="javax.servlet.http.*" %>
+<%@ page import="jakarta.servlet.http.*" %>
 
 <%
     String user = (String)request.getParameter("username");

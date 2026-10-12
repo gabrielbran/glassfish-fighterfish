@@ -16,7 +16,7 @@
 
 package org.glassfish.fighterfish.test.app11.ejb;
 
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
 
 /**
  * Stateless implementation of the remote EJB interface.

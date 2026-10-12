@@ -37,7 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 import static com.sun.enterprise.web.Constants.DEFAULT_WEB_MODULE_PREFIX;
 

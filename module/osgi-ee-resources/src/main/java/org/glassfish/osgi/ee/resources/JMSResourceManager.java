@@ -15,15 +15,16 @@
  */
 package org.glassfish.osgi.ee.resources;
 
+import org.glassfish.api.naming.SimpleJndiName;
 import com.sun.enterprise.config.serverbeans.BindableResource;
 import com.sun.enterprise.config.serverbeans.ResourceRef;
 import org.glassfish.connectors.config.ConnectorConnectionPool;
 import org.glassfish.connectors.config.ConnectorResource;
 import org.osgi.framework.BundleContext;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.TopicConnectionFactory;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.QueueConnectionFactory;
+import jakarta.jms.TopicConnectionFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Properties;
@@ -52,9 +53,9 @@ public final class JMSResourceManager extends BaseResourceManager
      * Iterates through all of the configured connector-resources of jms-ra and
      * exposes them as OSGi service.
      * The service contract  can be one of the following :<br>
-     * <i>javax.jms.ConnectionFactory</i><br>
-     * <i>javax.jms.QueueConnectionFactory</i><br>
-     * <i>javax.jms.TopicConnectionFactory</i><br><br>
+     * <i>jakarta.jms.ConnectionFactory</i><br>
+     * <i>jakarta.jms.QueueConnectionFactory</i><br>
+     * <i>jakarta.jms.TopicConnectionFactory</i><br><br>
      *
      * @param context bundle-context
      */
@@ -84,7 +85,7 @@ public final class JMSResourceManager extends BaseResourceManager
                         = (ConnectorConnectionPool) getResources()
                                 .getResourceByName(
                                         ConnectorConnectionPool.class,
-                                        poolName);
+                                        SimpleJndiName.of(poolName));
                 String defnName = pool.getConnectionDefinitionName();
                 Class claz = null;
                 Class[] intf = null;
@@ -138,7 +139,8 @@ public final class JMSResourceManager extends BaseResourceManager
         boolean result = false;
         String poolName = resource.getPoolName();
         ConnectorConnectionPool pool = (ConnectorConnectionPool) getResources()
-                .getResourceByName(ConnectorConnectionPool.class, poolName);
+                .getResourceByName(ConnectorConnectionPool.class,
+                        SimpleJndiName.of(poolName));
         String raName = pool.getResourceAdapterName();
         if (raName.equals(Constants.DEFAULT_JMS_ADAPTER)) {
             result = true;

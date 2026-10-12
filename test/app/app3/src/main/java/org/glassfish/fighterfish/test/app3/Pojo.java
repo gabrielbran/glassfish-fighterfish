@@ -16,7 +16,7 @@
 package org.glassfish.fighterfish.test.app3;
 
 import java.io.Serializable;
-import javax.enterprise.context.SessionScoped;
+import jakarta.enterprise.context.SessionScoped;
 
 /**
  * Simple CDI bean.

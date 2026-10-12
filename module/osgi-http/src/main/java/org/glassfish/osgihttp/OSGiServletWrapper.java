@@ -20,9 +20,9 @@ import org.apache.catalina.Wrapper;
 import org.apache.catalina.core.StandardWrapper;
 import org.glassfish.web.valve.GlassFishValve;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import java.util.Set;
 
 /**

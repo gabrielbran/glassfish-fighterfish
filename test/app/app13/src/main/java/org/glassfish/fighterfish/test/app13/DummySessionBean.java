@@ -16,7 +16,7 @@
 
 package org.glassfish.fighterfish.test.app13;
 
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
 
 /**
  * Session Bean implementation class DummySessionBean.

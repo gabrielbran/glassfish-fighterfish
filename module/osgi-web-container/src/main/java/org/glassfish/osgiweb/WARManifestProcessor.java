@@ -73,9 +73,9 @@ public final class WARManifestProcessor {
      * Default import package.
      */
     private static final String DEFAULT_IMPORT_PACKAGE
-            = "javax.servlet; javax.servlet.http; version=2.5, "
-            + "javax.servlet.jsp; javax.servlet.jsp.tagext;"
-            + "javax.el; javax.servlet.jsp.el; version=2.1";
+            = "jakarta.servlet; jakarta.servlet.http; version=2.5, "
+            + "jakarta.servlet.jsp; jakarta.servlet.jsp.tagext;"
+            + "jakarta.el; jakarta.servlet.jsp.el; version=2.1";
 
     /**
      * We always add WEB-INF/classes/, because not adding has the adverse side

@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.osgi.framework.BundleContext;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * This sample test demonstrates use of a custom JUnit test runner called

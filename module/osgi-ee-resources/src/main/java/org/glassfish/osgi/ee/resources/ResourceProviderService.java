@@ -15,6 +15,7 @@
  */
 package org.glassfish.osgi.ee.resources;
 
+import org.glassfish.api.naming.SimpleJndiName;
 import com.sun.appserv.connectors.internal.api.ConnectorsUtil;
 import com.sun.enterprise.config.serverbeans.BindableResource;
 import com.sun.enterprise.config.serverbeans.Domain;
@@ -59,9 +60,9 @@ import static org.jvnet.hk2.config.Changed.TYPE.REMOVE;
  * JDBC Resources, JMS Connection Factories, JMS Destinations are exported with
  * following <i>ServiceReference</i> names<br>
  * For JDBC Resources : <i>javax.sql.DataSource</i>  <br>
- * For JMS Resources : <i>javax.jms.ConnectionFactory /
- * javax.jms.QueueConnectionFactory / javax.jms.TopicConnectionFactory</i> <br>
- * For JMS Destinations : <i>javax.jms.Queue / javax.jms.Topic</i> <br>
+ * For JMS Resources : <i>jakarta.jms.ConnectionFactory /
+ * jakarta.jms.QueueConnectionFactory / jakarta.jms.TopicConnectionFactory</i> <br>
+ * For JMS Destinations : <i>jakarta.jms.Queue / jakarta.jms.Topic</i> <br>
  *
  */
 public final class ResourceProviderService implements ConfigListener {
@@ -299,7 +300,7 @@ public final class ResourceProviderService implements ConfigListener {
                 String resourceName = resourceRef.getRef();
                 BindableResource resource = (BindableResource) rps.resources
                         .getResourceByName(BindableResource.class,
-                                resourceName);
+                                SimpleJndiName.of(resourceName));
                 unRegisterResource(resource);
             } else if (removedInstance instanceof BindableResource) {
                 //since delete resource-ref event will not work
@@ -339,7 +340,7 @@ public final class ResourceProviderService implements ConfigListener {
                                     = (BindableResource) rps.resources
                                             .getResourceByName(
                                                     BindableResource.class,
-                                                    refName);
+                                                    SimpleJndiName.of(refName));
                             if (newValue) {
                                 registerResource(bindableResource, resourceRef);
                             } else {
@@ -400,7 +401,8 @@ public final class ResourceProviderService implements ConfigListener {
                 Resources resources = rps.habitat.getComponent(Domain.class)
                         .getResources();
                 Collection<BindableResource> bindableResources = ConnectorsUtil
-                        .getResourcesOfPool(resources, poolName);
+                        .getResourcesOfPool(resources,
+                                SimpleJndiName.of(poolName));
                 reRegisterResource(bindableResources);
             }
             return null;
@@ -485,7 +487,7 @@ public final class ResourceProviderService implements ConfigListener {
                 String resourceName = resourceRef.getRef();
                 BindableResource resource = (BindableResource) rps.resources
                         .getResourceByName(BindableResource.class,
-                                resourceName);
+                                SimpleJndiName.of(resourceName));
                 if (resource != null) {
                     registerResource(resource, resourceRef);
                 }
@@ -518,7 +520,7 @@ public final class ResourceProviderService implements ConfigListener {
     private boolean runtimeSupportsJMS() {
         boolean supports = false;
         try {
-            Class.forName("javax.jms.QueueConnectionFactory");
+            Class.forName("jakarta.jms.QueueConnectionFactory");
             supports = true;
         } catch (Throwable e) {
             LOGGER.log(Level.FINEST, "Exception while loading JMS API {0}", e);

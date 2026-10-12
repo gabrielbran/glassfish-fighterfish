@@ -12,8 +12,8 @@ package org.glassfish.fighterfish.sample.osgihttp.helloworld;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;

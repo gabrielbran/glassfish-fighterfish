@@ -21,5 +21,5 @@
 // Generated on: 2009.12.21 at 12:29:44 PM IST 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://java.sun.com/xml/ns/persistence", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://java.sun.com/xml/ns/persistence", elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.glassfish.osgijpa.dd;

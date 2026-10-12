@@ -17,7 +17,7 @@ package org.glassfish.osgiweb;
 
 import com.sun.faces.spi.ConfigurationResourceProvider;
 import com.sun.faces.spi.FacesConfigResourceProvider;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;

@@ -17,7 +17,7 @@ package org.glassfish.osgihttp;
 
 import com.sun.enterprise.web.WebModule;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.lang.ref.WeakReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;

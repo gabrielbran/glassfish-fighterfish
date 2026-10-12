@@ -18,12 +18,12 @@ package org.glassfish.fighterfish.test.app16.mdb;
 
 import org.glassfish.osgicdi.OSGiService;
 
-import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.inject.Inject;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageListener;
+import jakarta.jms.TextMessage;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.glassfish.fighterfish.test.app16.entities.Message;
 
 /**
@@ -64,7 +64,7 @@ public class TestApp16MDBBase  implements MessageListener {
      * @param message incoming message
      */
     @Override
-    public void onMessage(final javax.jms.Message message) {
+    public void onMessage(final jakarta.jms.Message message) {
         if (message == null) {
             throw new IllegalArgumentException("message is null");
         }

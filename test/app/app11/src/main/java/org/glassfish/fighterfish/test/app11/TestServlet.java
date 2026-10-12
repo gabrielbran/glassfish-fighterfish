@@ -16,12 +16,12 @@
 
 package org.glassfish.fighterfish.test.app11;
 
-import javax.ejb.EJB;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import java.io.IOException;
 import org.glassfish.fighterfish.test.app11.ejb.TestRemote;
 

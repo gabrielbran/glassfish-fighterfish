@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.osgi.framework.BundleContext;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * Test2 using {@link FighterFishJUnitRunner}.

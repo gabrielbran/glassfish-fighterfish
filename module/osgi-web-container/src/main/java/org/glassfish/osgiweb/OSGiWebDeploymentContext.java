@@ -17,6 +17,7 @@ package org.glassfish.osgiweb;
 
 import com.sun.enterprise.module.common_impl.CompositeEnumeration;
 import org.apache.naming.resources.WebDirContext;
+import org.glassfish.api.deployment.archive.WarArchiveType;
 import org.glassfish.osgijavaeebase.OSGiArchiveHandler;
 import org.glassfish.osgijavaeebase.OSGiDeploymentContext;
 import org.glassfish.osgijavaeebase.BundleClassLoader;
@@ -33,7 +34,6 @@ import java.io.FileFilter;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -159,30 +159,27 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
 
             @Override
             public String getArchiveType() {
-                // Since I am not able to reference GF 4.0 APIs as they are not
-                // yet staged in a maven repo,
-                // I am accessing the value in a round about way.
-                // WarType.ARCHIVE_TYPE;
-                return javax.enterprise.deploy.shared.ModuleType.WAR
-                        .toString();
+                return WarArchiveType.ARCHIVE_TYPE;
             }
         });
     }
 
     @Override
     protected void setupClassLoader() throws Exception {
-        ClassLoader cl = new WABClassLoader(null);
+        WebappClassLoader cl = createWABClassLoader();
         setFinalClassLoader(cl);
         setShareableTempClassLoader(cl);
-        WebappClassLoader.class.cast(cl).start();
+        cl.start();
     }
 
     /**
-     * We need this class loader for variety of reasons explained below: a)
-     * GlassFish default servlet (DefaultServlet.java), the servlet responsible
-     * for serving static content fails to serve any static content from
-     * META-INF/resources/ of WEB-INF/lib/*.jar, if the class-loader is not an
-     * instance of WebappClassLoader. b) DefaultServlet also expects
+     * Create the class loader of a WAB.
+     *
+     * We need a {@link WebappClassLoader} for variety of reasons explained
+     * below: a) GlassFish default servlet (DefaultServlet.java), the servlet
+     * responsible for serving static content fails to serve any static content
+     * from META-INF/resources/ of WEB-INF/lib/*.jar, if the class-loader is not
+     * an instance of WebappClassLoader. b) DefaultServlet also expects
      * WebappClassLoader's resourceEntries to be properly populated. c) JSPC
      * relies on getURLs() methods so that it can discover TLDs in the web app.
      * Setting up repositories and jar files ensures that WebappClassLoader's
@@ -190,14 +187,71 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
      * specialized FileDirContext object that restricts access to OSGI-INF and
      * OSGI-OPT resources of a WAB as required by the OSGi WAB spec.
      *
+     * Since GlassFish 8, {@link WebappClassLoader} is final and can no longer
+     * be extended. The OSGi class loading rules are therefore implemented by
+     * {@link WABDelegatingClassLoader}, which is installed as the parent of
+     * the {@link WebappClassLoader}. The latter is configured to always
+     * delegate first, so that classes and resources are looked up using the
+     * OSGi export control mechanism before the local repositories are
+     * consulted.
+     *
+     * @return the class loader
+     */
+    private WebappClassLoader createWABClassLoader() {
+        WebappClassLoader cl = new WebappClassLoader(
+                new WABDelegatingClassLoader());
+        // we always delegate. The default is false in WebappClassLoader!
+        cl.setDelegate(true);
+
+        File base = getSourceDir();
+        // Let's install a customized dir context that does not allow static
+        // contents from OSGI-OPT and OSGI-INF directories as required by
+        // the OSGi WAB spec.
+        WebDirContext r = new OSGiWebDirContext();
+        r.setDocBase(base.getAbsolutePath());
+        cl.setResources(r);
+
+        // add WEB-INF/classes/ and WEB-INF/lib/*.jar to repository list,
+        // because many legacy code path like DefaultServlet, JSPC,
+        // StandardContext rely on them.
+        // See WebappLoader.setClassPath() for example.
+        cl.addRepository("WEB-INF/classes/", new File(base,
+                "WEB-INF/classes/"));
+        File libDir = new File(base, "WEB-INF/lib");
+        if (libDir.exists()) {
+            int baseFileLen = base.getPath().length();
+            for (File file : libDir.listFiles(
+                    new FileFilter() {
+                @Override
+                public boolean accept(final File pathname) {
+                    String fileName = pathname.getName();
+                    return (fileName.endsWith(".jar")
+                            && pathname.isFile());
+                }
+            })) {
+                try {
+                    cl.addJar(file.getPath().substring(baseFileLen), file);
+                    // jarFile is closed by WebappClassLoader.close()
+                } catch (Exception e) {
+                    // Catch and ignore any exception in case the JAR file
+                    // is empty.
+                }
+            }
+        }
+        // We set the same working dir as set in WarHandler
+        cl.setWorkDir(getScratchDir("jsp"));
+        return cl;
+    }
+
+    /**
+     * Parent class loader of the {@link WebappClassLoader} of a WAB.
+     *
      * It overrides loadClass(), getResource() and getResources() as opposed to
      * their findXYZ() equivalents so that the OSGi export control mechanism is
      * enforced even for classes and resources available in the system/boot
-     * class loader. The only time this class loader is defining class loader
-     * for some classes is when this class loader is used by containers like CDI
-     * or EJB to define generated classes.
+     * class loader.
      */
-    private class WABClassLoader extends WebappClassLoader {
+    private final class WABDelegatingClassLoader extends ClassLoader {
 
         /**
          * First delegate class-loader.
@@ -211,25 +265,19 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
         private final ClassLoader delegate2 = Globals
                 .get(ClassLoaderHierarchy.class).getAPIClassLoader();
 
-        @Override
-        public Class<?> loadClass(final String name)
-                throws ClassNotFoundException {
-
-            return loadClass(name, false);
+        /**
+         * Create a new instance.
+         */
+        WABDelegatingClassLoader() {
+            super(null);
         }
 
         @Override
-        protected synchronized Class<?> loadClass(final String name,
+        protected Class<?> loadClass(final String name,
                 final boolean resolve) throws ClassNotFoundException {
 
-            // this class loader may be the defining loader for a proxy or
-            // generated class
-            Class c = findLoadedClass(name);
-            if (c != null) {
-                return c;
-            }
-            // mojarra uses Thread's context class loader (which is us) to look
-            // up custom annotation provider.
+            // mojarra uses Thread's context class loader to look up custom
+            // annotation provider.
             // since we don't export our package and in fact hide our provider,
             // we need to load them using current loader.
             if (HIDDEN_SERVICES.contains(name)) {
@@ -255,13 +303,13 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
         public Enumeration<URL> getResources(final String name)
                 throws IOException {
 
-            List<Enumeration<URL>> enumerators
-                    = new ArrayList<Enumeration<URL>>();
             final String mappedResourcePath = HIDDEN_SERVICES_MAP.get(name);
             if (mappedResourcePath != null) {
                 return getClass().getClassLoader()
                         .getResources(mappedResourcePath);
             }
+            List<Enumeration<URL>> enumerators
+                    = new ArrayList<Enumeration<URL>>();
             enumerators.add(delegate1.getResources(name));
             enumerators.add(delegate2.getResources(name));
             return new CompositeEnumeration(enumerators);
@@ -269,10 +317,6 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
 
         @Override
         public InputStream getResourceAsStream(final String name) {
-            // We need to override this method because of the stupid
-            // WebappClassLoader that for some reason not only overrides
-            // getResourceAsStream, it also does not delegate to getResource
-            // method.
             URL url = getResource(name);
             try {
                 if (url != null) {
@@ -282,55 +326,6 @@ class OSGiWebDeploymentContext extends OSGiDeploymentContext {
             } catch (IOException e) {
                 return null;
             }
-        }
-
-        /**
-         * Create a new instance.
-         * @param parent the parent class-loader
-         */
-        WABClassLoader(final ClassLoader parent) {
-            super(parent);
-            // we always delegate. The default is false in WebappClassLoader!
-            setDelegate(true);
-
-            File base = getSourceDir();
-            // Let's install a customized dir context that does not allow static
-            // contents from OSGI-OPT and OSGI-INF directories as required by
-            // the OSGi WAB spec.
-            WebDirContext r = new OSGiWebDirContext();
-            r.setDocBase(base.getAbsolutePath());
-            setResources(r);
-
-            // add WEB-INF/classes/ and WEB-INF/lib/*.jar to repository list,
-            // because many legacy code path like DefaultServlet, JSPC,
-            // StandardContext rely on them.
-            // See WebappLoader.setClassPath() for example.
-            addRepository("WEB-INF/classes/", new File(base,
-                    "WEB-INF/classes/"));
-            File libDir = new File(base, "WEB-INF/lib");
-            if (libDir.exists()) {
-                int baseFileLen = base.getPath().length();
-                for (File file : libDir.listFiles(
-                        new FileFilter() {
-                    @Override
-                    public boolean accept(final File pathname) {
-                        String fileName = pathname.getName();
-                        return (fileName.endsWith(".jar")
-                                && pathname.isFile());
-                    }
-                })) {
-                    try {
-                        addJar(file.getPath().substring(baseFileLen),
-                                new JarFile(file), file);
-                        // jarFile is closed by WebappClassLoader.stop()
-                    } catch (Exception e) {
-                        // Catch and ignore any exception in case the JAR file
-                        // is empty.
-                    }
-                }
-            }
-            // We set the same working dir as set in WarHandler
-            setWorkDir(getScratchDir("jsp"));
         }
     }
 }
