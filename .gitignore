@@ -1,2 +1,4 @@
 target
 nb-configuration.xml
+# logs written by GlassFish when instanceRoot is not resolved
+${com.sun.aas.instanceRoot}

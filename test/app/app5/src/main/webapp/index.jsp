@@ -33,6 +33,6 @@ by the container.
 
 -->
 
-<jsp:forward page="guess/greeting.jsp" />
+<jsp:forward page="guess/greeting.xhtml" />
 </body>
 </html>

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011, 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -16,16 +17,24 @@
 
 package org.glassfish.fighterfish.test.app5;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.SessionScoped;
 import jakarta.faces.component.UIComponent;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.validator.ValidatorException;
+import jakarta.inject.Named;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /**
  *  Simple bean.
  */
-public final class UserNumberBean {
+@Named("UserNumberBean")
+@SessionScoped
+public class UserNumberBean implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * The number.
@@ -78,6 +87,16 @@ public final class UserNumberBean {
      * Set the user number.
      * @param number number to set
      */
+    /**
+     * Initialize the range (formerly managed properties in faces-config.xml).
+     */
+    @PostConstruct
+    @SuppressWarnings("checkstyle:MagicNumber")
+    void init() {
+        setMinimum(1);
+        setMaximum(10);
+    }
+
     public void setUserNumber(final Integer number) {
         this.userNumber = number;
         System.out.println("Set userNumber " + this.userNumber);
@@ -221,8 +240,8 @@ public final class UserNumberBean {
                     if (this.maxSet) {
                         throw new ValidatorException(
                                 MessageFactory.getMessage(ctx, NOT_IN_RANGE,
-                                        new Object[]{new Double(this.min),
-                                            new Double(this.max),
+                                        new Object[]{Double.valueOf(this.min),
+                                            Double.valueOf(this.max),
                                             MessageFactory.getLabel(ctx, comp)
                                         }));
                     }

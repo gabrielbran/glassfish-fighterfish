@@ -72,18 +72,18 @@
     </servlet-mapping>
 
     <security-constraint>
-	 <!-- This security constraint illustrates how JSP pages 
+	 <!-- This security constraint illustrates how Facelets pages 
              with JavaServer Faces components can be protected from
              being accessed without going through the Faces Servlet.
              The security constraint ensures that the Faces Servlet will
              be used or the pages will not be processed. -->
-	<display-name>Restrict access to JSP pages</display-name>
+	<display-name>Restrict access to Facelets pages</display-name>
 	<web-resource-collection>
             <web-resource-name>
-		Restrict access to JSP pages
+		Restrict access to Facelets pages
             </web-resource-name>
-	    <url-pattern>/greeting.jsp</url-pattern>
-	    <url-pattern>/response.jsp</url-pattern>
+	    <url-pattern>/greeting.xhtml</url-pattern>
+	    <url-pattern>/response.xhtml</url-pattern>
 	</web-resource-collection>
 	<auth-constraint>
 	    <description>
