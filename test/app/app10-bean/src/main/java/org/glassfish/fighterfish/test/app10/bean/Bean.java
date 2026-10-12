@@ -15,15 +15,16 @@
  */
 package org.glassfish.fighterfish.test.app10.bean;
 
-import jakarta.faces.bean.ManagedBean;
-import jakarta.faces.bean.NoneScoped;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Named;
 
 /**
- * Simple JSF managed bean.
+ * Simple CDI bean used by a JSF page (Faces managed beans were removed in
+ * Jakarta Faces 4).
  */
-@ManagedBean
-@NoneScoped
-public final class Bean {
+@Named("bean")
+@RequestScoped
+public class Bean {
 
     /**
      * Foo.

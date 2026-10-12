@@ -66,4 +66,11 @@
         <module>app19</module>
         <module>app20</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

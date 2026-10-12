@@ -30,6 +30,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>jakarta.jws</groupId>
+            <artifactId>jakarta.jws-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.fighterfish</groupId>
             <artifactId>osgi-cdi-api</artifactId>
             <version>${project.version}</version>

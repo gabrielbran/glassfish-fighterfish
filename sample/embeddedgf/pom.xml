@@ -27,4 +27,11 @@
         <module>webosgibridge</module>
         <module>provisionerwebapp</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
