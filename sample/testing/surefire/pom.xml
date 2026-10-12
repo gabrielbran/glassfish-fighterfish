@@ -24,7 +24,7 @@
 
     <properties>
         <stage.dir>${project.build.directory}/stage</stage.dir>
-        <glassfish.install.dir>${stage.dir}/glassfish5/glassfish</glassfish.install.dir>
+        <glassfish.install.dir>${stage.dir}/glassfish8/glassfish</glassfish.install.dir>
     </properties>
 
     <build>
@@ -53,28 +53,87 @@
                             <overWriteSnapshots>true</overWriteSnapshots>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>override-fighterfish-autostart</id>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <includeGroupIds>org.glassfish.fighterfish</includeGroupIds>
+                            <includeArtifactIds>
+                                osgi-cdi, osgi-ee-resources, osgi-ejb-container,
+                                osgi-http, osgi-javaee-base, osgi-jdbc, osgi-jpa,
+                                osgi-jta, osgi-web-container
+                            </includeArtifactIds>
+                            <transitive>false</transitive>
+                            <outputDirectory>${glassfish.install.dir}/modules/autostart</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>override-fighterfish-module</id>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <includeGroupIds>org.glassfish.fighterfish</includeGroupIds>
+                            <includeArtifactIds>
+                                 osgi-jpa-extension
+                            </includeArtifactIds>
+                            <transitive>false</transitive>
+                            <outputDirectory>${glassfish.install.dir}/modules</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dfile.encoding=UTF-8 -Djava.endorsed.dirs=${glassfish.install.dir}/modules/endorsed -Dmaven.repo.local=${maven.repo.local}</argLine>
+                    <!-- one JVM per test class: GlassFish 8 does not support
+                         being started several times in the same JVM -->
+                    <reuseForks>false</reuseForks>
+                    <argLine>${glassfish.jvm.options} -Dfile.encoding=UTF-8 -Dmaven.repo.local=${maven.repo.local}</argLine>
                     <systemPropertyVariables>
                         <project.version>${project.version}</project.version>
                         <derby.stream.error.file>${project.build.directory}/derby.log</derby.stream.error.file>
                         <org.glassfish.startupThreadPolicy>FULLY_THREADED</org.glassfish.startupThreadPolicy>
                         <com.sun.aas.installRoot>${glassfish.install.dir}</com.sun.aas.installRoot>
                         <com.sun.aas.instanceRoot>${glassfish.install.dir}/domains/domain1</com.sun.aas.instanceRoot>
+                        <com.sun.aas.derbyRoot>${glassfish.install.dir}/../javadb</com.sun.aas.derbyRoot>
                         <org.osgi.framework.storage>${project.build.directory}/osgi-cache</org.osgi.framework.storage>
                         <com.sun.enterprise.registration.PING_TIMER_INTERVAL>-1</com.sun.enterprise.registration.PING_TIMER_INTERVAL>
                         <com.sun.aas.logging.keyvalue.logsource>true</com.sun.aas.logging.keyvalue.logsource>
                         <fighterfish.test.DerbyDBRootDir></fighterfish.test.DerbyDBRootDir>
                         <derby.stream.error.file>${project.build.directory}/derby.log</derby.stream.error.file>
                         <fighterfish.test.setup.timeout>200000</fighterfish.test.setup.timeout>
+                        <sun.net.http.retryPost>false</sun.net.http.retryPost>
                     </systemPropertyVariables>
+                    <!-- packages exported by the system bundle, see PaxExamConfigurator -->
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish-jdk-extensions.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish-jul-extension.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/glassfish.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${glassfish.install.dir}/lib/bootstrap/simple-glassfish-api.jar</additionalClasspathElement>
+                    </additionalClasspathElements>
                     <classpathDependencyExcludes>
-                        <classpathDependencyExclude>jakarta.inject:jakarta.inject-api</classpathDependencyExclude>
+                        <classpathDependencyExcludes>org.glassfish.main.common:simple-glassfish-api</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.osgi</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>javax.*:*</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>jakarta.*:*</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.glassfish.main.osgi-platforms:felix-webconsole-extension</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.apache.felix:org.apache.felix.scr</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.apache.felix:org.apache.felix.http.wrappers</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.glassfish.fighterfish:osgi-*</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.glassfish.fighterfish:fighterfighs-test*</classpathDependencyExcludes>
+                        <classpathDependencyExcludes>org.glassfish.fighterfish:fighterfighs-sample*</classpathDependencyExcludes>
                     </classpathDependencyExcludes>
                 </configuration>
             </plugin>
@@ -82,6 +141,41 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.component</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.metatype</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.util.function</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.util.promise</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.wrappers</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.fighterfish</groupId>
             <artifactId>fighterfish-test-util</artifactId>
@@ -97,6 +191,136 @@
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-cdi</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-ee-resources</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-ejb-container</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-http</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-javaee-base</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-jdbc</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-jpa</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-jpa-extension</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-jta</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.fighterfish</groupId>
+            <artifactId>osgi-web-container</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>
