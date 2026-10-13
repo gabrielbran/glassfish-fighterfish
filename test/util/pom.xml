@@ -132,7 +132,7 @@
                     <!-- one JVM per test class: GlassFish 8 does not support
                          being started several times in the same JVM -->
                     <reuseForks>false</reuseForks>
-                    <argLine>${glassfish.jvm.options} -Dfile.encoding=UTF-8 -Dmaven.repo.local=${maven.repo.local}</argLine>
+                    <argLine>${glassfish.jvm.options} -Dfile.encoding=UTF-8 "-Dmaven.repo.local=${settings.localRepository}"</argLine>
                     <systemPropertyVariables>
                         <derby.stream.error.file>${project.build.directory}/derby.log</derby.stream.error.file>
                         <org.glassfish.startupThreadPolicy>FULLY_THREADED</org.glassfish.startupThreadPolicy>
