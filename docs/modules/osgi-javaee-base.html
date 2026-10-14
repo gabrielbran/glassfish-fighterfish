@@ -1,0 +1,964 @@
+<title>FighterFish · osgi-javaee-base</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: technical reference — sticky index rail on wide screens, one reading column, diagrams in scroll boxes */
+:root {
+  --bg: #f6f7f6;
+  --surface: #ffffff;
+  --ink: #18201f;
+  --muted: #586664;
+  --line: #d9dfdd;
+  --accent: #0d6b62;
+  --accent-soft: #e2f0ed;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --code-bg: #eef2f1;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111615; --surface: #171e1d; --ink: #e3eae8; --muted: #9aaba8; --line: #2b3634;
+    --accent: #5cc4b6; --accent-soft: #19302d; --warn: #e3a64a; --warn-soft: #2e2416; --code-bg: #1d2625;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111615; --surface: #171e1d; --ink: #e3eae8; --muted: #9aaba8; --line: #2b3634;
+  --accent: #5cc4b6; --accent-soft: #19302d; --warn: #e3a64a; --warn-soft: #2e2416; --code-bg: #1d2625;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15.5px; line-height: 1.62;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.shell { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; padding-block: 40px 80px; }
+@media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 24px 56px; } nav.toc { position: static !important; } }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc .eyebrow { margin-bottom: 10px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+nav.toc a { color: var(--muted); text-decoration: none; display: block; padding: 3px 0 3px 10px; border-left: 2px solid var(--line); }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); border-left-color: var(--accent); outline: none; }
+main { min-width: 0; }
+.eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 650; font-size: clamp(2rem, 4.2vw, 2.9rem); line-height: 1.1; margin: 8px 0 14px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--f-display); font-weight: 650; font-size: 1.75rem; line-height: 1.2; margin: 64px 0 8px; text-wrap: balance; scroll-margin-top: 20px; }
+h3 { font-family: var(--f-body); font-weight: 600; font-size: 1.05rem; margin: 28px 0 6px; }
+p, li { max-width: 72ch; }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 68ch; }
+code, .mono { font-family: var(--f-mono); font-size: .86em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+a { color: var(--accent); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 24px 0 8px; }
+.facts div { background: var(--surface); padding: 12px 14px; }
+.facts dt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.facts dd { margin: 2px 0 0; font-family: var(--f-mono); font-size: 13px; overflow-wrap: anywhere; }
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin: 18px 0 8px; overflow-x: auto; }
+.diagram pre.mermaid { margin: 0; background: transparent; font-family: var(--f-mono); font-size: 12px; min-width: 640px; }
+.caption { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.layer { display: grid; gap: 14px; margin-top: 12px; }
+.cls { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; scroll-margin-top: 20px; }
+.cls header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 6px; }
+.cls h4 { margin: 0; font-family: var(--f-mono); font-size: 15px; font-weight: 600; }
+.kind { font-size: 11.5px; font-family: var(--f-mono); color: var(--accent); background: var(--accent-soft); padding: 1px 7px; border-radius: 99px; }
+.kind.dead { color: var(--warn); background: var(--warn-soft); }
+.loc { font-size: 12px; color: var(--muted); font-family: var(--f-mono); margin-left: auto; }
+.cls p { margin: 6px 0; }
+.cls ul { margin: 6px 0; padding-left: 20px; }
+.rel { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 12px; font-size: 13.5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.rel dt { color: var(--muted); }
+.rel dd { margin: 0; }
+@media (max-width: 520px) { .rel { grid-template-columns: minmax(0, 1fr); } .rel dd { margin-bottom: 6px; } .loc { margin-left: 0; } }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; background: var(--surface); }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+.obs { display: grid; gap: 12px; }
+.obs article { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.obs h4 { margin: 0 0 4px; font-size: 15px; }
+.sev { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 1px 7px; border-radius: 99px; margin-right: 6px; }
+.sev.m { color: var(--warn); background: var(--warn-soft); }
+.sev.l { color: var(--muted); background: var(--code-bg); }
+.sev.i { color: var(--accent); background: var(--accent-soft); }
+footer { margin-top: 72px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="shell">
+<nav class="toc" aria-label="Índice">
+  <div class="eyebrow">Módulo 1 de 11</div>
+  <ol>
+    <li><a href="#rol">Rol del módulo</a></li>
+    <li><a href="#mapa">Mapa de capas</a></li>
+    <li><a href="#clases">Diagrama de clases</a></li>
+    <li><a href="#arranque">Flujo de arranque</a></li>
+    <li><a href="#despliegue">Flujo de despliegue</a></li>
+    <li><a href="#repliegue">Flujo de repliegue</a></li>
+    <li><a href="#deployers">Deployers dinámicos</a></li>
+    <li><a href="#classloaders">Class loaders</a></li>
+    <li><a href="#archivos">Modelo de archivos</a></li>
+    <li><a href="#fichas">Clase por clase</a></li>
+    <li><a href="#referencias">Referencias externas</a></li>
+    <li><a href="#observaciones">Observaciones del código</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="eyebrow">FighterFish · module/osgi-javaee-base</div>
+<h1>osgi-javaee-base, el núcleo de despliegue híbrido</h1>
+<p class="lede">El módulo base sobre el que se construyen los contenedores web, EJB y los extenders de JPA, JTA, JDBC y recursos. No despliega nada por sí mismo: define el ciclo de vida de los extenders, el contenedor que decide qué deployer atiende cada bundle, la plantilla de despliegue sobre la API de GlassFish y la forma de leer un bundle como si fuera un archivo Jakarta EE.</p>
+
+<dl class="facts">
+  <div><dt>Paquete</dt><dd>org.glassfish.osgijavaeebase</dd></div>
+  <div><dt>Bundle-Activator</dt><dd>OSGiJavaEEActivator</dd></div>
+  <div><dt>Exporta</dt><dd>-exportcontents: * (todo el paquete)</dd></div>
+  <div><dt>Tamaño</dt><dd>22 tipos · ~5.200 líneas</dd></div>
+  <div><dt>Depende de</dt><dd>osgi.core, glassfish-api, kernel, internal-api, deployment-common, simple-glassfish-api</dd></div>
+  <div><dt>Lo usan</dt><dd>osgi-web-container, osgi-ejb-container, osgi-jpa, osgi-jta, osgi-jdbc, osgi-ee-resources, osgi-http</dd></div>
+</dl>
+
+<!-- ============================================================ -->
+<h2 id="rol">Rol del módulo</h2>
+<p>FighterFish sigue el <strong>patrón extender</strong> de OSGi: un bundle observa a los demás y, cuando reconoce uno que contiene artefactos Jakarta EE, lo despliega en el contenedor correspondiente de GlassFish. Este módulo aporta las cuatro piezas comunes a todos esos extenders:</p>
+<ol>
+  <li><strong>Ciclo de vida de extenders.</strong> <code>ExtenderManager</code> espera a que GlassFish esté <code>STARTED</code> y entonces arranca todos los servicios <code>Extender</code> registrados (los de este módulo y los de los demás). Los detiene cuando GlassFish anuncia <code>PREPARE_SHUTDOWN</code>.</li>
+  <li><strong>Contenedor de aplicaciones híbridas.</strong> <code>JavaEEExtender</code> sigue los bundles activos y <code>OSGiContainer</code> elige, por ranking de servicio, el <code>OSGiDeployer</code> que sabe manejar cada bundle.</li>
+  <li><strong>Plantilla de despliegue.</strong> <code>AbstractOSGiDeployer</code>, <code>OSGiDeploymentRequest</code>, <code>OSGiUndeploymentRequest</code> y <code>OSGiDeploymentContext</code> convierten un bundle en una llamada a <code>Deployment.deploy()</code> de GlassFish. Las subclases solo aportan el contexto y los class loaders específicos.</li>
+  <li><strong>Lectura del bundle como archivo.</strong> <code>OSGiBundleArchive</code> y <code>OSGiJavaEEArchive</code> implementan <code>ReadableArchive</code> sobre la API de bundles, respetando <code>Bundle-ClassPath</code> y fragmentos.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id="mapa">Mapa de capas</h2>
+<p>Las 22 clases del módulo, agrupadas por responsabilidad. Las flechas indican quién usa a quién dentro del módulo.</p>
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  subgraph L1["1 · Arranque y extenders"]
+    ACT["OSGiJavaEEActivator"]
+    EM["ExtenderManager"]
+    EXT{{"Extender «interface»"}}
+    JEE["JavaEEExtender"]
+  end
+  subgraph L2["2 · Contenedor"]
+    CONT["OSGiContainer"]
+    DEP{{"OSGiDeployer «interface»"}}
+    INFO["OSGiApplicationInfo"]
+  end
+  subgraph L3["3 · Plantilla de despliegue"]
+    AD["AbstractOSGiDeployer"]
+    DR["OSGiDeploymentRequest"]
+    UR["OSGiUndeploymentRequest"]
+    DC["OSGiDeploymentContext"]
+    AH["OSGiArchiveHandler"]
+    DE["DeploymentException"]
+  end
+  subgraph L4["4 · Archivos"]
+    BA["OSGiBundleArchive"]
+    JA["OSGiJavaEEArchive"]
+    URI{{"URIable «interface»"}}
+    BR["BundleResource"]
+  end
+  subgraph L5["5 · Class loaders"]
+    BCL["BundleClassLoader"]
+    TCL["TempBundleClassLoader"]
+    RCF["ReflectiveClassFinder"]
+  end
+  subgraph L6["6 · Utilidades"]
+    JH["JarHelper"]
+    CST["Constants"]
+  end
+
+  ACT --> EM
+  ACT --> JEE
+  EM --> EXT
+  JEE -.implementa.-> EXT
+  JEE --> CONT
+  CONT --> DEP
+  CONT --> INFO
+  AD -.implementa.-> DEP
+  AD --> DR
+  AD --> UR
+  DR --> DC
+  DR --> BA
+  DR --> AH
+  UR --> DC
+  DC --> AH
+  JA --> BA
+  BA -.implementa.-> URI
+  BA --> BR
+  BA --> JH
+  BA --> CST
+  TCL --> BCL
+</pre>
+</div>
+<p class="caption">Los hexágonos son interfaces. <code>TempBundleClassLoader</code> y <code>ReflectiveClassFinder</code> no tienen usos en el repositorio (ver <a href="#observaciones">observaciones</a>).</p>
+
+<!-- ============================================================ -->
+<h2 id="clases">Diagrama de clases</h2>
+<p>Todas las clases con sus miembros principales y sus relaciones con las clases de GlassFish y OSGi de las que heredan o a las que llaman. Las clases anidadas se muestran con el nombre de su clase externa.</p>
+<div class="diagram">
+<pre class="mermaid">
+classDiagram
+  direction LR
+  class BundleActivator { «osgi» }
+  class ServiceTracker { «osgi» }
+  class BundleTrackerCustomizer { «osgi» }
+  class DeploymentContextImpl { «glassfish» }
+  class AbstractArchiveHandler { «glassfish» }
+  class AbstractReadableArchive { «glassfish» }
+  class AbstractURLStreamHandlerService { «osgi» }
+  class ClassFinder { «glassfish» DelegatingClassLoader.ClassFinder }
+
+  class OSGiJavaEEActivator {
+    -ExtenderManager extenderManager
+    -ServiceRegistration urlHandlerServiceRegistration
+    -ServiceRegistration javaeeExtenderServiceRegistration
+    +start(BundleContext)
+    +stop(BundleContext)
+  }
+  class ExtenderManager {
+    -BundleContext context
+    -Events events
+    -EventListener listener
+    -ServiceTracker extenderTracker
+    -GlassFishServerTracker glassFishServerTracker
+    +start()
+    +stop()
+    -startExtenders()
+    -stopExtenders()
+  }
+  class ExtenderManager_ExtenderTracker {
+    +addingService(ref) Object
+    +removedService(ref, svc)
+  }
+  class ExtenderManager_GlassFishServerTracker {
+    +addingService(ref) Future
+    +removedService(ref, svc)
+  }
+  class Extender {
+    «interface»
+    +start()
+    +stop()
+  }
+  class JavaEEExtender {
+    -OSGiContainer c
+    -ServiceRegistration reg
+    -BundleTracker tracker
+    -ExecutorService executorService
+    +start()
+    +stop()
+    -deploy(Bundle) OSGiApplicationInfo
+    -undeploy(Bundle)
+  }
+  class JavaEEExtender_HybridBundleTrackerCustomizer {
+    -Map deploymentTasks
+    +addingBundle(Bundle, BundleEvent) Object
+    +removedBundle(Bundle, BundleEvent, Object)
+    +getDeploymentTimeout() long
+  }
+  class OSGiContainer {
+    -Map~Bundle,OSGiApplicationInfo~ applications
+    -Map~OSGiApplicationInfo,ServiceRegistration~ regs
+    -List~ServiceReference~ sortedDeployerRefs
+    -ServiceTracker deployerTracker
+    +deploy(Bundle) OSGiApplicationInfo
+    +undeploy(Bundle)
+    +undeployAll()
+    +isDeployed(Bundle) boolean
+    +getDeployedApps() OSGiApplicationInfo[]
+    -selectDeployer(Bundle) ServiceReference
+    -redeploy(Bundle)
+  }
+  class OSGiDeployer {
+    «interface»
+    +deploy(Bundle) OSGiApplicationInfo
+    +undeploy(OSGiApplicationInfo)
+    +handles(Bundle) boolean
+  }
+  class OSGiApplicationInfo {
+    -ApplicationInfo appInfo
+    -boolean isDirectoryDeployment
+    -Bundle bundle
+    -ClassLoader classLoader
+    -ServiceReference osgiDeployerRef
+  }
+  class AbstractOSGiDeployer {
+    «abstract»
+    -int rank
+    -Deployment deployer
+    -ArchiveFactory archiveFactory
+    -ServerEnvironmentImpl env
+    +register()
+    +unregister()
+    +deploy(Bundle) OSGiApplicationInfo
+    +undeploy(OSGiApplicationInfo)
+    +undeployAll()
+    #createOSGiDeploymentRequest(...)* OSGiDeploymentRequest
+    #createOSGiUndeploymentRequest(...)* OSGiUndeploymentRequest
+    #raiseEvent(State, Bundle, Throwable)
+  }
+  class AbstractOSGiDeployer_State {
+    «enum»
+    DEPLOYING
+    DEPLOYED
+    FAILED
+    UNDEPLOYING
+    UNDEPLOYED
+  }
+  class OSGiDeploymentRequest {
+    «abstract»
+    -ReadableArchive archive
+    -OSGiDeploymentContext dc
+    -boolean dirDeployment
+    +execute() OSGiApplicationInfo
+    #preDeploy()
+    #postDeploy()
+    #makeArchive() ReadableArchive
+    #getDeployParams() DeployCommandParameters
+    #getDeploymentContextImpl(...)* OSGiDeploymentContext
+    -prepare()
+    -expandIfNeeded()
+    -getExplodedDir() File
+  }
+  class OSGiUndeploymentRequest {
+    «abstract»
+    -OSGiApplicationInfo osgiAppInfo
+    +execute()
+    #preUndeploy()
+    #postUndeploy()
+    #getUndeployParams(info) UndeployCommandParameters
+    #getDeploymentContextImpl(...)* OSGiDeploymentContext
+    -closeClassLoaders(List)
+  }
+  class OSGiDeploymentContext {
+    «abstract»
+    -ClassLoader shareableTempClassLoader
+    -ClassLoader finalClassLoader
+    -Bundle bundle
+    #setupClassLoader()*
+    +getClassLoader() ClassLoader
+    +getFinalClassLoader() ClassLoader
+    +getShareableTempClassLoader() ClassLoader
+  }
+  class OSGiArchiveHandler {
+    +getArchiveType() "OSGiBundle"
+    +handles(archive) false
+    +getDefaultApplicationName(archive) String
+  }
+  class DeploymentException
+  class OSGiBundleArchive {
+    -Bundle bundle
+    -String name
+    -URI uri
+    -Map subArchives
+    +getSubArchive(name) ReadableArchive
+    +getEntryURI(name) URI
+    +iterator() Iterator~BundleResource~
+    +getInputStream() InputStream
+  }
+  class OSGiBundleArchive_EmbeddedDirectoryArchive
+  class OSGiBundleArchive_EmbeddedJarArchive
+  class OSGiBundleArchive_BundleResourceIterator
+  class OSGiBundleArchive_EmbeddedJarURLStreamHandlerService {
+    EMBEDDED_JAR_SCHEME = "embeddedjar"
+    SEPARATOR = "!/"
+    +openConnection(URL) URLConnection
+  }
+  class OSGiJavaEEArchive {
+    «abstract»
+    -Bundle host
+    -Bundle[] fragments
+    -Map~String,ArchiveEntry~ entries
+    #init()*
+    #getEffectiveBCP() EffectiveBCP
+    #getArchive(Bundle) OSGiBundleArchive
+  }
+  class OSGiJavaEEArchive_EffectiveBCP
+  class OSGiJavaEEArchive_BCPEntry {
+    «interface»
+  }
+  class OSGiJavaEEArchive_DirBCPEntry
+  class OSGiJavaEEArchive_JarBCPEntry
+  class URIable {
+    «interface»
+    +getEntryURI(name) URI
+    +getDistanceFromTop() String
+  }
+  class BundleResource {
+    -URI uri
+    -String path
+    -String archivePath
+  }
+  class BundleClassLoader {
+    -Bundle bundle
+    +loadClass(name, resolve) Class
+    +getResource(name) URL
+    +getResources(name) Enumeration
+  }
+  class TempBundleClassLoader {
+    -BundleClassLoader delegate
+    #findClass(name) Class
+  }
+  class ReflectiveClassFinder
+  class JarHelper {
+    «utility»
+    +accept(JarInputStream, Visitor)$
+    +write(URLConnection, OutputStream, Manifest)$
+    +makeJar(File, Runnable)$ InputStream
+    +copy(in, out, ByteBuffer)$
+  }
+  class Constants {
+    REFERENCE_PROTOCOL = "reference:"
+    FILE_PROTOCOL = "file:"
+  }
+
+  OSGiJavaEEActivator ..|> BundleActivator
+  OSGiJavaEEActivator --> ExtenderManager : crea
+  OSGiJavaEEActivator --> JavaEEExtender : registra como Extender
+  OSGiJavaEEActivator --> OSGiBundleArchive_EmbeddedJarURLStreamHandlerService : registra
+  ExtenderManager *-- ExtenderManager_ExtenderTracker
+  ExtenderManager *-- ExtenderManager_GlassFishServerTracker
+  ExtenderManager_ExtenderTracker --|> ServiceTracker
+  ExtenderManager_GlassFishServerTracker --|> ServiceTracker
+  ExtenderManager_ExtenderTracker ..> Extender : start / stop
+  JavaEEExtender ..|> Extender
+  JavaEEExtender *-- JavaEEExtender_HybridBundleTrackerCustomizer
+  JavaEEExtender_HybridBundleTrackerCustomizer ..|> BundleTrackerCustomizer
+  JavaEEExtender *-- OSGiContainer
+  OSGiContainer o-- OSGiApplicationInfo : applications
+  OSGiContainer ..> OSGiDeployer : selecciona por ranking
+  AbstractOSGiDeployer ..|> OSGiDeployer
+  AbstractOSGiDeployer *-- AbstractOSGiDeployer_State
+  AbstractOSGiDeployer ..> OSGiDeploymentRequest : crea
+  AbstractOSGiDeployer ..> OSGiUndeploymentRequest : crea
+  AbstractOSGiDeployer ..> DeploymentException : lanza
+  OSGiDeploymentRequest --> OSGiDeploymentContext
+  OSGiDeploymentRequest ..> OSGiBundleArchive : makeArchive()
+  OSGiDeploymentRequest ..> OSGiArchiveHandler : expand()
+  OSGiDeploymentRequest ..> OSGiApplicationInfo : produce
+  OSGiUndeploymentRequest --> OSGiApplicationInfo
+  OSGiUndeploymentRequest ..> OSGiDeploymentContext
+  OSGiDeploymentContext --|> DeploymentContextImpl
+  OSGiDeploymentContext ..> OSGiArchiveHandler : setArchiveHandler
+  OSGiArchiveHandler --|> AbstractArchiveHandler
+  OSGiBundleArchive --|> AbstractReadableArchive
+  OSGiBundleArchive ..|> URIable
+  OSGiBundleArchive *-- OSGiBundleArchive_EmbeddedDirectoryArchive
+  OSGiBundleArchive *-- OSGiBundleArchive_EmbeddedJarArchive
+  OSGiBundleArchive *-- OSGiBundleArchive_BundleResourceIterator
+  OSGiBundleArchive_EmbeddedDirectoryArchive ..|> URIable
+  OSGiBundleArchive_EmbeddedJarArchive ..|> URIable
+  OSGiBundleArchive_BundleResourceIterator ..> BundleResource : produce
+  OSGiBundleArchive_EmbeddedJarURLStreamHandlerService --|> AbstractURLStreamHandlerService
+  OSGiBundleArchive ..> JarHelper
+  OSGiBundleArchive ..> Constants
+  OSGiJavaEEArchive --|> AbstractReadableArchive
+  OSGiJavaEEArchive o-- OSGiBundleArchive : host + fragmentos
+  OSGiJavaEEArchive *-- OSGiJavaEEArchive_EffectiveBCP
+  OSGiJavaEEArchive_EffectiveBCP o-- OSGiJavaEEArchive_BCPEntry
+  OSGiJavaEEArchive_DirBCPEntry ..|> OSGiJavaEEArchive_BCPEntry
+  OSGiJavaEEArchive_JarBCPEntry ..|> OSGiJavaEEArchive_BCPEntry
+  TempBundleClassLoader --> BundleClassLoader
+  ReflectiveClassFinder ..|> ClassFinder
+</pre>
+</div>
+<p class="caption">Notación: <code>--|&gt;</code> herencia, <code>..|&gt;</code> implementación, <code>*--</code> composición (clase anidada o propiedad exclusiva), <code>o--</code> agregación, <code>..&gt;</code> dependencia o creación. El sufijo <code>_Nombre</code> indica una clase anidada.</p>
+
+<!-- ============================================================ -->
+<h2 id="arranque">Flujo de arranque</h2>
+<p>Cuando Felix arranca el bundle, el activador registra el manejador de URLs <code>embeddedjar:</code>, crea el <code>ExtenderManager</code> y registra el <code>JavaEEExtender</code> como servicio. Ningún extender empieza a trabajar hasta que GlassFish está completamente arrancado: así se evita desplegar aplicaciones con el servidor a medio iniciar.</p>
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant F as Felix
+  participant A as OSGiJavaEEActivator
+  participant EM as ExtenderManager
+  participant GT as GlassFishServerTracker
+  participant GF as GlassFish (servicio)
+  participant ET as ExtenderTracker
+  participant X as JavaEEExtender
+  participant C as OSGiContainer
+
+  F->>A: start(context)
+  A->>F: registerService(URLStreamHandlerService, embeddedjar)
+  A->>EM: new ExtenderManager(context)
+  A->>EM: start()
+  EM->>GT: open() — sigue el servicio GlassFish
+  A->>F: registerService(Extender, new JavaEEExtender)
+  Note over A,F: Otros módulos (web, ejb, jpa, jta, jdbc, http, resources)<br/>registran también sus servicios Extender
+  GF-->>GT: addingService(GlassFish)
+  GT->>GT: hilo aparte: sondeo cada 1 s de getStatus()
+  loop hasta STARTED (o DISPOSED → fin)
+    GT->>GF: getStatus()
+  end
+  GT->>EM: startExtenders()
+  EM->>ET: open()
+  ET->>X: addingService → start()
+  X->>C: new OSGiContainer(context); init()
+  C->>C: abre OSGiDeployerTracker
+  X->>F: registerService(OSGiContainer)
+  X->>F: new BundleTracker(ACTIVE | STARTING).open()
+  GT->>GF: getService(Events).register(listener)
+  Note over GT,GF: Al recibir PREPARE_SHUTDOWN el listener<br/>llama a stopExtenders()
+</pre>
+</div>
+<p>El orden de los dos últimos pasos es deliberado: los extenders arrancan <em>antes</em> de registrar el listener de eventos. El comentario del código explica que, al revés, podía producirse un interbloqueo si GlassFish enviaba <code>PREPARE_SHUTDOWN</code> mientras <code>startExtenders()</code> estaba en curso.</p>
+
+<!-- ============================================================ -->
+<h2 id="despliegue">Flujo de despliegue de un bundle</h2>
+<p>El recorrido completo desde que un bundle pasa a <code>ACTIVE</code> hasta que queda desplegado en GlassFish. Las cajas en gris son puntos de extensión que implementa cada contenedor concreto (web, EJB).</p>
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant BT as BundleTracker
+  participant H as HybridBundleTrackerCustomizer
+  participant EX as Executor (1 hilo)
+  participant X as JavaEEExtender
+  participant C as OSGiContainer
+  participant D as AbstractOSGiDeployer (subclase)
+  participant R as OSGiDeploymentRequest (subclase)
+  participant GD as Deployment (GlassFish)
+
+  BT->>H: addingBundle(bundle, event)
+  H->>H: isReady? ACTIVE, o STARTING con LAZY_ACTIVATION
+  H->>EX: submit(deploy(bundle)) y guarda el Future por bundleId
+  EX->>X: deploy(bundle) [synchronized]
+  X->>C: deploy(bundle) [synchronized]
+  C->>C: ¿STOPPING? ¿ya desplegado? → null
+  C->>C: selectDeployer(): recorre deployers por ranking descendente
+  C->>D: handles(bundle)
+  D-->>C: true (p. ej. tiene Web-ContextPath)
+  C->>D: deploy(bundle)
+  D->>D: raiseEvent(DEPLOYING)
+  D->>R: createOSGiDeploymentRequest(deployer, archiveFactory, env, report, bundle)
+  D->>R: execute()
+  R->>R: preDeploy()
+  rect rgba(128,128,128,0.12)
+  R->>R: prepare(): makeArchive() → OSGiBundleArchive o WAB/EJBBundle
+  R->>R: getDeployParams(): name, enabled, origin=deploy, target
+  R->>R: expandIfNeeded(): si no es directorio, expande en<br/>datafile/applications/bundle{id}-{lastModified}
+  R->>R: getDeploymentContextImpl(): crea el OSGiDeploymentContext<br/>y sus class loaders (setupClassLoader)
+  end
+  R->>GD: deploy(dc)
+  GD-->>R: ApplicationInfo (o null si falla)
+  R->>R: new OSGiApplicationInfo(appInfo, dirDeployment, bundle, dc.getFinalClassLoader())
+  R->>R: postDeploy() — siempre, también si falló
+  R-->>D: OSGiApplicationInfo o null
+  alt null
+    D->>D: raiseEvent(FAILED) y lanza DeploymentException
+  else correcto
+    D->>D: raiseEvent(DEPLOYED)
+  end
+  D-->>C: OSGiApplicationInfo
+  C->>C: setDeployer(ref); applications.put(bundle, info)
+  C->>C: registerService(OSGiApplicationInfo)
+</pre>
+</div>
+<div class="note"><strong>Limpieza en caso de error.</strong> Si <code>Deployment.deploy()</code> devuelve <code>null</code> y el bundle no venía como directorio, <code>OSGiDeploymentRequest.deploy()</code> borra el directorio expandido en su bloque <code>finally</code>. Como GlassFish "se come" muchas excepciones, el fallo se detecta por el <code>null</code> y el mensaje del <code>ActionReport</code>, no por una excepción.</div>
+
+<!-- ============================================================ -->
+<h2 id="repliegue">Flujo de repliegue</h2>
+<p>Cuando el bundle sale de <code>ACTIVE</code>/<code>STARTING</code> (se detiene o desinstala), el tracker llama a <code>removedBundle</code>. El repliegue es síncrono, para no competir con el apagado del bundle.</p>
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant BT as BundleTracker
+  participant H as HybridBundleTrackerCustomizer
+  participant X as JavaEEExtender
+  participant C as OSGiContainer
+  participant D as AbstractOSGiDeployer
+  participant U as OSGiUndeploymentRequest
+  participant AI as ApplicationInfo (GlassFish)
+  participant GD as Deployment (GlassFish)
+
+  BT->>H: removedBundle(bundle)
+  H->>H: future = deploymentTasks.remove(bundleId)
+  H->>H: future.get(timeout) — por defecto 10 000 ms
+  alt timeout
+    H->>H: cancel(true); si no se pudo cancelar, get() sin límite
+  end
+  H->>X: undeploy(bundle) si hubo resultado o c.isDeployed(bundle)
+  X->>C: undeploy(bundle)
+  C->>C: applications.remove; desregistra el servicio OSGiApplicationInfo
+  C->>D: undeploy(info) usando el deployer guardado en info
+  D->>D: raiseEvent(UNDEPLOYING)
+  D->>U: createOSGiUndeploymentRequest(...).execute()
+  U->>U: preUndeploy()
+  U->>U: getDeploymentContextImpl() — crea un contexto nuevo
+  U->>AI: stop(dc); unload(dc)
+  U->>GD: undeploy(appName, dc)
+  U->>U: closeClassLoaders(): preDestroy() por reflexión en<br/>info.classLoader, temp y final (GLASSFISH-19727)
+  U->>U: si no era directorio, borra el directorio expandido
+  U->>U: postUndeploy()
+  D->>D: raiseEvent(UNDEPLOYED) — aunque haya fallado
+  D-->>C: DeploymentException si el ActionReport indica FAILURE
+</pre>
+</div>
+<p>El tiempo de espera se configura con la propiedad del framework <code>org.glassfish.osgijavaeebase.deployment.timeout</code> (milisegundos). Además del <code>Future</code>, se comprueba <code>isDeployed()</code>: un <code>DeployerAddedThread</code> puede haber desplegado el bundle sin pasar por el tracker (caso GLASSFISH-18159).</p>
+
+<!-- ============================================================ -->
+<h2 id="deployers">Deployers dinámicos y estados</h2>
+<p><code>OSGiContainer</code> no conoce los deployers de antemano: los descubre como servicios <code>OSGiDeployer</code>. Cada contenedor concreto (por ejemplo <code>OSGiWebDeployer</code>) se registra con un <code>service.ranking</code>, y el contenedor mantiene la lista ordenada de mayor a menor ranking. Cuando aparece o desaparece un deployer, se lanzan hilos que vuelven a desplegar los bundles afectados.</p>
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  subgraph alta["Alta de un OSGiDeployer"]
+    A1["OSGiDeployerTracker.addingService"] --> A2["deployerAdded: inserta y reordena por ranking"]
+    A2 --> A3["DeployerAddedThread"]
+    A3 --> A4{"para cada bundle del framework:<br/>isReady y newDeployer.handles"}
+    A4 -->|sí| A5["redeploy(bundle):<br/>undeploy si estaba + deploy"]
+  end
+  subgraph baja["Baja de un OSGiDeployer"]
+    B1["OSGiDeployerTracker.removedService"] --> B2["deployerRemoved: lo quita de la lista"]
+    B2 --> B3["DeployerRemovedThread"]
+    B3 --> B4{"para cada app desplegada:<br/>getDeployer == ref antiguo"}
+    B4 -->|sí| B5["redeploy(bundle):<br/>otro deployer puede tomarlo"]
+  end
+</pre>
+</div>
+<p><code>AbstractOSGiDeployer.unregister()</code> llama primero a <code>undeployAll()</code> y después desregistra el servicio. Si lo hiciera al revés, el contenedor ya no podría obtener el deployer para replegar sus aplicaciones.</p>
+
+<h3>Estados que publica cada deployer</h3>
+<p>La enumeración <code>AbstractOSGiDeployer.State</code> marca las transiciones que se notifican mediante <code>raiseEvent()</code>. En este módulo el método está vacío; <code>OSGiWebDeployer</code> lo sobrescribe para publicar los eventos de Event Admin que exige la especificación de WAB (<code>WABEventPublisher</code>).</p>
+<div class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> DEPLOYING : deploy(bundle)
+  DEPLOYING --> DEPLOYED : execute() devuelve info
+  DEPLOYING --> FAILED : execute() devuelve null
+  FAILED --> [*] : DeploymentException
+  DEPLOYED --> UNDEPLOYING : undeploy(info)
+  UNDEPLOYING --> UNDEPLOYED : siempre, aunque falle
+  UNDEPLOYED --> [*]
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="classloaders">Class loaders</h2>
+<p>GlassFish usa dos class loaders durante un despliegue: uno temporal, para escanear anotaciones en la fase <code>PREPARE</code>, y uno final para ejecutar la aplicación. <code>OSGiDeploymentContext</code> anula la creación estándar (<code>createDeploymentClassLoader</code> y <code>createApplicationClassLoader</code> no hacen nada) y devuelve los que la subclase fija en <code>setupClassLoader()</code>.</p>
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  GFDC["DeploymentContextImpl (GlassFish)"] --> ODC["OSGiDeploymentContext"]
+  ODC -->|"getClassLoader() en fase PREPARE"| TMP["shareableTempClassLoader"]
+  ODC -->|"getClassLoader() en el resto de fases<br/>getFinalClassLoader()"| FIN["finalClassLoader"]
+  ODC -.->|"getClassLoader(boolean)"| ERR["RuntimeException: no debe llamarse"]
+  subgraph sub["Lo fija la subclase en setupClassLoader()"]
+    WEB["Web: WebappClassLoader de GF8<br/>padre WABDelegatingClassLoader"]
+    EJB["EJB: DelegatingInstrumentableClassLoader"]
+  end
+  TMP -.-> sub
+  FIN -.-> sub
+  WEB --> BCL["BundleClassLoader"]
+  EJB --> BCL
+  BCL -->|"loadClass / getResource / getResources"| BUNDLE["Bundle.loadClass / getResource"]
+  BCL -.->|"padre nominal, nunca consultado"| OSGIAPI["class loader de org.osgi.framework.Bundle"]
+</pre>
+</div>
+<p><code>BundleClassLoader</code> sobrescribe <code>loadClass</code>, <code>getResource</code> y <code>getResources</code> (no los <code>find*</code>). Así incluso las clases del JDK o del sistema pasan por el wiring del bundle, y se respeta el control de exportaciones de OSGi. Nunca define clases: <code>getClassLoader()</code> de una clase nunca devolverá esta instancia.</p>
+
+<!-- ============================================================ -->
+<h2 id="archivos">Modelo de archivos</h2>
+<p>GlassFish trabaja con <code>ReadableArchive</code>. Este módulo ofrece dos vistas de un bundle:</p>
+<ul>
+  <li><strong><code>OSGiBundleArchive</code></strong>: el contenido físico del bundle, entrada por entrada, mediante <code>Bundle.getEntry</code> y <code>getEntryPaths</code>. No mezcla fragmentos.</li>
+  <li><strong><code>OSGiJavaEEArchive</code></strong>: una vista "aplanada" para Jakarta EE. Recorre el <code>Bundle-ClassPath</code> efectivo del host y de sus fragmentos y deja que la subclase (<code>WAB</code>, <code>EJBBundle</code>) construya el mapa de entradas que verá GlassFish.</li>
+</ul>
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  B["Bundle (host)"] --> OBA["OSGiBundleArchive"]
+  F1["Fragmento 1"] --> OBA2["OSGiBundleArchive"]
+  OBA -->|"getSubArchive(dir/)"| EDA["EmbeddedDirectoryArchive<br/>p. ej. WEB-INF/classes/"]
+  OBA -->|"getSubArchive(x.jar)"| EJA["EmbeddedJarArchive<br/>p. ej. WEB-INF/lib/a.jar"]
+  EJA -->|"getEntryURI"| URL["embeddedjar:bundle://…/WEB-INF/lib/a.jar!/pkg/A.class"]
+  URL -->|"lo abre"| H["EmbeddedJarURLStreamHandlerService<br/>(registrado por el activador)"]
+  OBA -->|"iterator()"| BRI["BundleResourceIterator"]
+  BRI -->|"una por entrada de cada elemento del Bundle-ClassPath"| BR["BundleResource<br/>uri · path · archivePath"]
+  OJA["OSGiJavaEEArchive (abstracta)"] --> OBA
+  OJA --> OBA2
+  OJA --> EBCP["EffectiveBCP<br/>lista de DirBCPEntry / JarBCPEntry"]
+  OJA -->|"init() de la subclase"| ENT["Map entries: nombre → ArchiveEntry"]
+  OJA -->|"MANIFEST.MF"| MF["siempre el del host"]
+  WAB["WAB (osgi-web-container)"] -.extiende.-> OJA
+  EJB["EJBBundle (osgi-ejb-container)"] -.extiende.-> OJA
+</pre>
+</div>
+<p><strong>Nombre del archivo.</strong> <code>OSGiBundleArchive.getName()</code> devuelve <code>Bundle-SymbolicName_Bundle-Version</code> (o la ubicación si no hay nombre simbólico). Ese nombre se convierte en el nombre de la aplicación en GlassFish (<code>DeployCommandParameters.name</code>).</p>
+<p><strong>URI real del bundle.</strong> Solo se conoce si el bundle se instaló con <code>reference:file:…</code>: en ese caso Felix lee directamente del fichero o directorio. Si la URI apunta a un directorio, el despliegue es "de directorio" y no se expande; en cualquier otro caso se expande en el almacenamiento privado del bundle.</p>
+
+<!-- ============================================================ -->
+<h2 id="fichas">Clase por clase</h2>
+<p>Ordenadas por capa. Cada ficha indica qué hace la clase, cómo lo hace, con qué colabora dentro del módulo y quién la usa fuera de él.</p>
+
+<h3>1 · Arranque y extenders</h3>
+<div class="layer">
+<article class="cls" id="c-OSGiJavaEEActivator">
+  <header><h4>OSGiJavaEEActivator</h4><span class="kind">final class · BundleActivator</span><span class="loc">104 líneas</span></header>
+  <p>Punto de entrada del bundle (cabecera <code>Bundle-Activator</code>).</p>
+  <ul>
+    <li><code>start()</code>: registra el <code>URLStreamHandlerService</code> para el protocolo <code>embeddedjar</code>, crea y arranca el <code>ExtenderManager</code> y registra un <code>JavaEEExtender</code> como servicio <code>Extender</code>.</li>
+    <li><code>stop()</code>: lo inverso, en orden contrario: desregistra el extender, para el manager y quita el manejador de URLs.</li>
+  </ul>
+  <dl class="rel"><dt>Colabora con</dt><dd>ExtenderManager, JavaEEExtender, OSGiBundleArchive.EmbeddedJarURLStreamHandlerService</dd><dt>Usada por</dt><dd>Felix (activación del bundle)</dd></dl>
+</article>
+
+<article class="cls" id="c-ExtenderManager">
+  <header><h4>ExtenderManager</h4><span class="kind">class (paquete)</span><span class="loc">272 líneas</span></header>
+  <p>Arranca todos los servicios <code>Extender</code> cuando GlassFish está listo y los detiene en el apagado. Es único para todo FighterFish: los extenders de los demás módulos solo se registran como servicio y este manager los pone en marcha.</p>
+  <ul>
+    <li><strong>GlassFishServerTracker</strong> (anidada): sigue el servicio <code>org.glassfish.embeddable.GlassFish</code>. Al aparecer, lanza un hilo que sondea <code>getStatus()</code> cada segundo hasta <code>STARTED</code>. Después llama a <code>startExtenders()</code> y registra un <code>EventListener</code> que reacciona a <code>EventTypes.PREPARE_SHUTDOWN</code>. Al desaparecer el servicio, cancela el <code>Future</code> del sondeo.</li>
+    <li><strong>ExtenderTracker</strong> (anidada): <code>ServiceTracker</code> de <code>Extender</code>. <code>addingService</code> llama a <code>start()</code> y <code>removedService</code> a <code>stop()</code>, de modo que abrir o cerrar el tracker arranca o detiene todos los extenders.</li>
+    <li><code>startExtenders()</code> y <code>stopExtenders()</code> son <code>synchronized</code> e idempotentes: el código reconoce una condición de carrera que puede llamarlos más de una vez.</li>
+  </ul>
+  <dl class="rel"><dt>Colabora con</dt><dd>Extender, OSGiJavaEEActivator; GlassFish, Events (API de GlassFish)</dd><dt>Usada por</dt><dd>Solo OSGiJavaEEActivator</dd></dl>
+</article>
+
+<article class="cls" id="c-Extender">
+  <header><h4>Extender</h4><span class="kind">interface</span><span class="loc">33 líneas</span></header>
+  <p>Contrato mínimo de un extender: <code>start()</code> y <code>stop()</code>. Los módulos lo implementan y lo registran como servicio OSGi; nunca se arrancan por su cuenta.</p>
+  <dl class="rel"><dt>Implementada por</dt><dd>JavaEEExtender (aquí); WebExtender, WABEventPublisher, EJBExtender, JPAExtender, JTAExtender, JDBCExtender, ResourcesExtender y el extender de osgi-http</dd><dt>Usada por</dt><dd>ExtenderManager.ExtenderTracker</dd></dl>
+</article>
+
+<article class="cls" id="c-JavaEEExtender">
+  <header><h4>JavaEEExtender</h4><span class="kind">final class · Extender</span><span class="loc">313 líneas</span></header>
+  <p>El extender de aplicaciones híbridas: detecta bundles activos y los envía al <code>OSGiContainer</code>.</p>
+  <ul>
+    <li><code>start()</code>: crea un executor de un solo hilo y un <code>OSGiContainer</code> (que publica como servicio), y abre un <code>BundleTracker</code> sobre los estados <code>ACTIVE | STARTING</code>.</li>
+    <li><code>stop()</code>: apaga el contenedor (repliega todo), cierra el tracker, desregistra el servicio y detiene el executor.</li>
+    <li><strong>HybridBundleTrackerCustomizer</strong> (anidada): en <code>addingBundle</code>, si el bundle está listo, envía el despliegue al executor y guarda el <code>Future</code> por <code>bundleId</code>. "Listo" significa <code>ACTIVE</code>, o <code>STARTING</code> con un evento <code>LAZY_ACTIVATION</code>. En <code>removedBundle</code> espera el <code>Future</code> con timeout y repliega de forma síncrona.</li>
+    <li>Todos los métodos que tocan el contenedor son <code>synchronized</code>: no se puede detener el extender a mitad de un despliegue, ni desplegar mientras se detiene. El trabajo pesado va a otro hilo para no bloquear el listener síncrono de Felix (bug 14313 de GlassFish).</li>
+  </ul>
+  <dl class="rel"><dt>Colabora con</dt><dd>OSGiContainer, OSGiApplicationInfo</dd><dt>Configuración</dt><dd><code>org.glassfish.osgijavaeebase.deployment.timeout</code> (ms, por defecto 10000)</dd><dt>Usada por</dt><dd>OSGiJavaEEActivator</dd></dl>
+</article>
+</div>
+
+<h3>2 · Contenedor</h3>
+<div class="layer">
+<article class="cls" id="c-OSGiContainer">
+  <header><h4>OSGiContainer</h4><span class="kind">class</span><span class="loc">486 líneas</span></header>
+  <p>Registro central de aplicaciones híbridas desplegadas y despachador hacia los deployers. Se publica como servicio OSGi para que otros módulos puedan consultarlo.</p>
+  <ul>
+    <li><strong>Estado</strong>: <code>applications</code> (bundle → info), <code>regs</code> (info → registro de servicio) y <code>sortedDeployerRefs</code> (deployers por ranking descendente).</li>
+    <li><code>deploy(bundle)</code>: descarta los bundles en <code>STOPPING</code> o ya desplegados. Elige el primer deployer cuyo <code>handles()</code> responde <code>true</code> y delega en él. Después guarda el deployer usado dentro del info y publica el <code>OSGiApplicationInfo</code> como servicio.</li>
+    <li><code>undeploy(bundle)</code>: quita la aplicación del mapa, desregistra su servicio y llama al <em>mismo</em> deployer que la desplegó.</li>
+    <li><code>OSGiDeployerTracker</code>, <code>DeployerAddedThread</code> y <code>DeployerRemovedThread</code> (anidadas) mantienen las aplicaciones sincronizadas cuando aparecen o desaparecen deployers (ver <a href="#deployers">deployers dinámicos</a>).</li>
+    <li><code>isReady(bundle)</code> considera listo un bundle <code>ACTIVE</code>, o <code>STARTING</code> si su <code>Bundle-ActivationPolicy</code> es <code>lazy</code>.</li>
+    <li>Todo el acceso es <code>synchronized</code> sobre la instancia: el comentario explica que no se sabe si el framework de despliegue de GlassFish admite peticiones concurrentes.</li>
+  </ul>
+  <dl class="rel"><dt>Colabora con</dt><dd>OSGiDeployer, OSGiApplicationInfo</dd><dt>Usada por</dt><dd>JavaEEExtender; AbstractOSGiDeployer.undeployAll (como servicio); <code>OSGiEJBDeployer</code> y <code>ContextPathCollisionDetector</code> (osgi-web-container), que lo consultan como servicio</dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiDeployer">
+  <header><h4>OSGiDeployer</h4><span class="kind">interface</span><span class="loc">47 líneas</span></header>
+  <p>Contrato de un deployer: <code>handles(bundle)</code> decide si le corresponde el bundle; <code>deploy(bundle)</code> y <code>undeploy(info)</code> hacen el trabajo. Se publica como servicio con <code>service.ranking</code>; a mayor ranking, antes se le pregunta.</p>
+  <dl class="rel"><dt>Implementada por</dt><dd>AbstractOSGiDeployer → OSGiWebDeployer, OSGiEJBDeployer</dd><dt>Usada por</dt><dd>OSGiContainer</dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiApplicationInfo">
+  <header><h4>OSGiApplicationInfo</h4><span class="kind">final class · POJO</span><span class="loc">141 líneas</span></header>
+  <p>Representa una aplicación híbrida desplegada. Agrupa el <code>ApplicationInfo</code> de GlassFish, el bundle, si se desplegó desde directorio, el class loader final y la referencia al deployer que la desplegó. Se registra como servicio OSGi, lo que permite que otros módulos reaccionen a los despliegues.</p>
+  <dl class="rel"><dt>Colabora con</dt><dd>OSGiContainer, OSGiDeploymentRequest, OSGiUndeploymentRequest</dd><dt>Usada por</dt><dd><code>OSGiEJBDeployer</code> (sigue estos servicios para exportar EJBs), <code>ContextPathCollisionDetector</code>, <code>OSGiWebDeployer</code> y las peticiones web y EJB</dd></dl>
+</article>
+</div>
+
+<h3>3 · Plantilla de despliegue</h3>
+<div class="layer">
+<article class="cls" id="c-AbstractOSGiDeployer">
+  <header><h4>AbstractOSGiDeployer</h4><span class="kind">abstract class · OSGiDeployer</span><span class="loc">279 líneas</span></header>
+  <p>Base de todo deployer concreto (patrón <em>template method</em>). Obtiene de GlassFish, mediante <code>Globals</code>, el servicio <code>Deployment</code>, el <code>ArchiveFactory</code> y el <code>ServerEnvironmentImpl</code>.</p>
+  <ul>
+    <li><code>register()</code> / <code>unregister()</code>: se publica como <code>OSGiDeployer</code> con su ranking; al desregistrarse, primero repliega sus aplicaciones.</li>
+    <li><code>deploy()</code>: crea la petición con <code>createOSGiDeploymentRequest()</code>, la ejecuta y traduce un resultado <code>null</code> en <code>DeploymentException</code>, con el mensaje y la causa del <code>ActionReport</code>.</li>
+    <li><code>undeploy()</code>: análogo con <code>createOSGiUndeploymentRequest()</code>.</li>
+    <li><code>getReport()</code> obtiene el <code>ActionReport</code> vía <code>Globals</code> porque durante el apagado el servicio <code>GlassFish</code> ya no está disponible.</li>
+    <li><code>raiseEvent()</code> es un gancho vacío; la anidada <code>State</code> enumera los estados.</li>
+  </ul>
+  <dl class="rel"><dt>Métodos abstractos</dt><dd><code>createOSGiDeploymentRequest</code>, <code>createOSGiUndeploymentRequest</code>, <code>handles</code> (heredado de la interfaz)</dd><dt>Extendida por</dt><dd><code>OSGiWebDeployer</code> (web), <code>OSGiEJBDeployer</code> (EJB)</dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiDeploymentRequest">
+  <header><h4>OSGiDeploymentRequest</h4><span class="kind">abstract class</span><span class="loc">441 líneas</span></header>
+  <p>Petición con estado que despliega un bundle en GlassFish y deshace lo hecho si algo falla. <code>execute()</code> sigue este orden: <code>preDeploy</code> → <code>prepare</code> → <code>deploy</code> → <code>postDeploy</code>, y <code>postDeploy</code> se llama siempre.</p>
+  <ul>
+    <li><code>prepare()</code>: crea el archivo con <code>makeArchive()</code>, prepara los parámetros con <code>getDeployParams()</code>, expande si hace falta y crea el contexto con <code>getDeploymentContextImpl()</code>. Los parámetros se calculan <em>antes</em> de expandir para que el nombre de la aplicación sea el del bundle y no colisione con <code>asadmin deploy --type=osgi</code> (issue 10536).</li>
+    <li><code>expandIfNeeded()</code>: si el archivo es un directorio, lo usa tal cual. Si no, lo expande con <code>OSGiArchiveHandler.expand()</code> en <code>&lt;datafile&gt;/applications/bundle{id}-{lastModified}</code>. Incluir la fecha de modificación evita reutilizar contenido obsoleto tras actualizar el bundle.</li>
+    <li><code>deploy()</code>: llama a <code>Deployment.deploy(dc)</code> y construye el <code>OSGiApplicationInfo</code> con <code>dc.getFinalClassLoader()</code>.</li>
+    <li><code>makeFile(archive)</code> (estático): convierte la URI del archivo en <code>File</code>, o <code>null</code> si no es posible.</li>
+  </ul>
+  <dl class="rel"><dt>Puntos de extensión</dt><dd><code>getDeploymentContextImpl</code> (abstracto), <code>makeArchive</code>, <code>getDeployParams</code>, <code>preDeploy</code>, <code>postDeploy</code></dd><dt>Extendida por</dt><dd><code>OSGiWebDeploymentRequest</code> (detecta colisiones de context path, procesa el WAB), <code>OSGiEJBDeploymentRequest</code></dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiUndeploymentRequest">
+  <header><h4>OSGiUndeploymentRequest</h4><span class="kind">abstract class</span><span class="loc">235 líneas</span></header>
+  <p>Petición que repliega una aplicación. Crea un contexto de despliegue nuevo (el original no se conserva), detiene y descarga la aplicación (<code>ApplicationInfo.stop</code>, <code>unload</code>), llama a <code>Deployment.undeploy</code> y luego:</p>
+  <ul>
+    <li>cierra los tres class loaders conocidos invocando <code>preDestroy()</code> por reflexión. Es compatible con HK2 1.x y 2.x y evita que el <code>WebappClassLoader</code> retenga los jars de <code>WEB-INF/lib</code> (GLASSFISH-19727);</li>
+    <li>borra el directorio expandido si el despliegue no era de directorio.</li>
+  </ul>
+  <dl class="rel"><dt>Puntos de extensión</dt><dd><code>getDeploymentContextImpl</code> (abstracto), <code>getUndeployParams</code>, <code>preUndeploy</code>, <code>postUndeploy</code></dd><dt>Extendida por</dt><dd><code>OSGiWebUndeploymentRequest</code>, <code>OSGiEJBUndeploymentRequest</code></dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiDeploymentContext">
+  <header><h4>OSGiDeploymentContext</h4><span class="kind">abstract class · DeploymentContextImpl</span><span class="loc">148 líneas</span></header>
+  <p>Contexto de despliegue de GlassFish adaptado a bundles. Fija siempre <code>OSGiArchiveHandler</code> como manejador de archivo, sin pasar por el descubrimiento de GlassFish, y sustituye la gestión de class loaders:</p>
+  <ul>
+    <li><code>createDeploymentClassLoader</code> y <code>createApplicationClassLoader</code> no hacen nada.</li>
+    <li><code>getClassLoader()</code> devuelve el temporal en la fase <code>PREPARE</code> y el final en las demás.</li>
+    <li><code>getClassLoader(boolean)</code> lanza una excepción: no debe usarse.</li>
+    <li>La subclase fija ambos class loaders en <code>setupClassLoader()</code>, que se invoca desde el constructor.</li>
+  </ul>
+  <dl class="rel"><dt>Extendida por</dt><dd><code>OSGiWebDeploymentContext</code> (WebappClassLoader + WABDelegatingClassLoader), <code>OSGiEJBDeploymentContext</code></dd><dt>Usada por</dt><dd>OSGiDeploymentRequest, OSGiUndeploymentRequest</dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiArchiveHandler">
+  <header><h4>OSGiArchiveHandler</h4><span class="kind">class · AbstractArchiveHandler</span><span class="loc">91 líneas</span></header>
+  <p>Manejador de archivo de tipo <code>"OSGiBundle"</code>. No participa en el descubrimiento automático (<code>handles()</code> siempre es <code>false</code>) ni crea class loaders (<code>getClassLoader()</code> lanza una excepción). Su uso real es <code>expand()</code>, heredado, y el nombre por defecto de la aplicación, que es el nombre del archivo sin extensión.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>OSGiDeploymentRequest, OSGiDeploymentContext; <code>OSGiWebDeploymentContext</code>, <code>OSGiEJBDeploymentContext</code>, <code>EclipseLinkEnhancer</code> (osgi-jpa)</dd></dl>
+</article>
+
+<article class="cls" id="c-DeploymentException">
+  <header><h4>DeploymentException</h4><span class="kind">class · Exception</span><span class="loc">53 líneas</span></header>
+  <p>Excepción comprobada del ciclo de despliegue, con los cuatro constructores habituales.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>OSGiDeployer, AbstractOSGiDeployer, OSGiDeploymentRequest.preDeploy; <code>ContextPathCollisionException</code> la extiende en osgi-web-container</dd></dl>
+</article>
+</div>
+
+<h3>4 · Archivos</h3>
+<div class="layer">
+<article class="cls" id="c-OSGiBundleArchive">
+  <header><h4>OSGiBundleArchive</h4><span class="kind">final class · AbstractReadableArchive · URIable · Iterable</span><span class="loc">1.035 líneas</span></header>
+  <p>Implementa <code>ReadableArchive</code> de GlassFish leyendo directamente del bundle (<code>getEntry</code>, <code>getEntryPaths</code>). Es la clase más grande del módulo.</p>
+  <ul>
+    <li><strong>Inicialización</strong>: calcula la URI solo si la ubicación es <code>reference:file:</code> y el fichero existe. El nombre es <code>SymbolicName_Version</code>.</li>
+    <li><strong>Entradas</strong>: <code>entries()</code> recorre recursivamente con <code>getEntryPaths</code>, devuelve solo ficheros y evita un <code>META-INF/</code> duplicado (FELIX-2935). Requiere que el jar tenga entradas de directorio (FELIX-1210); hay una implementación alternativa con <code>findEntries</code> desactivada.</li>
+    <li><strong>Subarchivos</strong>: <code>getSubArchive(name)</code> devuelve un <code>EmbeddedDirectoryArchive</code> o un <code>EmbeddedJarArchive</code>, cacheados por nombre. Solo se admite un nivel de anidamiento.</li>
+    <li><strong>EmbeddedJarArchive</strong>: lee el jar anidado con <code>ZipInputStream</code> y expone sus entradas con URIs <code>embeddedjar:&lt;uri-del-jar&gt;!/&lt;entrada&gt;</code>.</li>
+    <li><strong>EmbeddedJarURLStreamHandlerService</strong>: abre esas URIs recorriendo el jar hasta la entrada pedida. El activador lo registra como servicio de manejo de URLs.</li>
+    <li><strong>Iteración</strong>: <code>iterator()</code> genera un <code>BundleResource</code> por cada entrada de cada elemento del <code>Bundle-ClassPath</code>. Es la base del escaneo de recursos de los demás módulos.</li>
+    <li><code>getInputStream()</code>: si hay fichero real, lo abre. Si no, genera un jar al vuelo con un pipe y un hilo (GLASSFISH-19662).</li>
+  </ul>
+  <dl class="rel"><dt>Colabora con</dt><dd>URIable, BundleResource, JarHelper, Constants</dd><dt>Usada por</dt><dd>OSGiDeploymentRequest.makeArchive, OSGiJavaEEArchive; <code>WAB</code>, <code>OSGiWebModuleDecorator</code>, <code>EJBBundle</code>, <code>JPABundleProcessor</code>, <code>EclipseLinkEnhancer</code></dd></dl>
+</article>
+
+<article class="cls" id="c-OSGiJavaEEArchive">
+  <header><h4>OSGiJavaEEArchive</h4><span class="kind">abstract class · AbstractReadableArchive</span><span class="loc">667 líneas</span></header>
+  <p>Vista de solo lectura que combina un bundle host y sus fragmentos en un único archivo Jakarta EE. La subclase rellena el mapa <code>entries</code> en <code>init()</code>; esta clase implementa todo lo demás de <code>ReadableArchive</code> sobre ese mapa.</p>
+  <ul>
+    <li>El <code>MANIFEST.MF</code> es siempre el del host (o ninguno si el host no tiene).</li>
+    <li><code>getEffectiveBCP()</code> construye el classpath efectivo: para cada elemento del <code>Bundle-ClassPath</code> del host busca primero en el host y luego en cada fragmento, y después añade el <code>Bundle-ClassPath</code> propio de cada fragmento. Cada elemento es un <code>DirBCPEntry</code> o un <code>JarBCPEntry</code>, recorribles con un visitante (<code>BCPEntryVisitor</code>).</li>
+    <li>Es inmutable: <code>delete</code>, <code>renameTo</code> y <code>open</code> no están soportados, <code>getURI()</code> devuelve <code>null</code> (es una colección) y <code>getSubArchive()</code> no está implementado.</li>
+  </ul>
+  <dl class="rel"><dt>Tipos anidados</dt><dd>ArchiveEntry, BCPEntry (+ BCPEntryVisitor), DirBCPEntry, JarBCPEntry, EffectiveBCP, EffectiveBCPBuilder</dd><dt>Extendida por</dt><dd><code>WAB</code> (osgi-web-container), <code>EJBBundle</code> (osgi-ejb-container)</dd></dl>
+</article>
+
+<article class="cls" id="c-URIable">
+  <header><h4>URIable</h4><span class="kind">interface</span><span class="loc">40 líneas</span></header>
+  <p>Archivo (posiblemente anidado) capaz de dar la URI de cada entrada (<code>getEntryURI</code>) y su distancia a la raíz del bundle (<code>getDistanceFromTop</code>, p. ej. <code>WEB-INF/lib/a.jar</code>).</p>
+  <dl class="rel"><dt>Implementada por</dt><dd>OSGiBundleArchive, EmbeddedDirectoryArchive, EmbeddedJarArchive</dd><dt>Usada por</dt><dd>BundleResourceIterator; <code>EJBBundle</code></dd></dl>
+</article>
+
+<article class="cls" id="c-BundleResource">
+  <header><h4>BundleResource</h4><span class="kind">final class · valor inmutable</span><span class="loc">80 líneas</span></header>
+  <p>Un recurso del classpath del bundle: su URI, su ruta dentro del espacio del classpath y la ruta del subarchivo que lo contiene (<code>""</code> si está en la raíz del bundle). El constructor es de paquete: solo <code>OSGiBundleArchive</code> los crea.</p>
+  <dl class="rel"><dt>Usada por</dt><dd><code>OSGiWebModuleDecorator</code> (escaneo de TLDs y recursos web), <code>JPABundleProcessor</code> (búsqueda de <code>persistence.xml</code>)</dd></dl>
+</article>
+</div>
+
+<h3>5 · Class loaders</h3>
+<div class="layer">
+<article class="cls" id="c-BundleClassLoader">
+  <header><h4>BundleClassLoader</h4><span class="kind">final class · ClassLoader</span><span class="loc">86 líneas</span></header>
+  <p>Adaptador de <code>Bundle</code> a <code>ClassLoader</code>: delega <code>loadClass</code>, <code>getResource</code> y <code>getResources</code> en el bundle. Nunca define clases. Si el bundle no tiene recursos, devuelve una enumeración vacía en lugar de <code>null</code>, como exige el contrato de <code>ClassLoader</code>.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>TempBundleClassLoader; <code>OSGiWebDeploymentContext</code> (dentro de <code>WABDelegatingClassLoader</code>), <code>OSGiEJBDeploymentContext</code>, <code>EclipseLinkEnhancer</code></dd></dl>
+</article>
+
+<article class="cls" id="c-TempBundleClassLoader">
+  <header><h4>TempBundleClassLoader</h4><span class="kind dead">final class · sin uso</span><span class="loc">155 líneas</span></header>
+  <p>Pensado como class loader temporal para el escaneo de anotaciones: lee los bytes de la clase a través de un <code>BundleClassLoader</code> y los define en su propio espacio de nombres, de modo que las clases escaneadas no contaminan el class loader real. Define los paquetes si hace falta y adapta el mensaje de <code>UnsupportedClassVersionError</code>.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>Nadie en el repositorio. Los contenedores web y EJB usan el mismo class loader como temporal y final.</dd></dl>
+</article>
+
+<article class="cls" id="c-ReflectiveClassFinder">
+  <header><h4>ReflectiveClassFinder</h4><span class="kind dead">final class (paquete) · sin uso</span><span class="loc">162 líneas</span></header>
+  <p>Implementación de <code>DelegatingClassLoader.ClassFinder</code> de GlassFish que invoca por reflexión los métodos protegidos (<code>findClass</code>, <code>findLoadedClass</code>, <code>findResource</code>, <code>findResources</code>) de otro class loader. Su javadoc la describe como "un hack feo" que no se usa porque necesita permisos especiales; con el sistema de módulos de JDK 9+ además fallaría por acceso ilegal.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>Nadie</dd></dl>
+</article>
+</div>
+
+<h3>6 · Utilidades</h3>
+<div class="layer">
+<article class="cls" id="c-JarHelper">
+  <header><h4>JarHelper</h4><span class="kind">final class · utilidad estática</span><span class="loc">286 líneas</span></header>
+  <p>Operaciones sobre jars como flujos:</p>
+  <ul>
+    <li><code>accept(jis, visitor)</code>: recorre las entradas con un <code>Visitor</code>.</li>
+    <li><code>write(con, os, manifest)</code> y <code>write(jis, jos)</code>: copian un jar sustituyendo su manifest. Es la base de las transformaciones de manifest de WAR y de drivers JDBC.</li>
+    <li><code>makeJar(dir, action)</code>: empaqueta un directorio como <code>InputStream</code> de jar usando un pipe y un hilo, y ejecuta <code>action</code> al terminar (p. ej. borrar el directorio).</li>
+    <li><code>copy(in, out, buffer)</code>: copia con canales NIO reutilizando el buffer.</li>
+  </ul>
+  <dl class="rel"><dt>Usada por</dt><dd>OSGiBundleArchive; <code>WARManifestProcessor</code>, <code>WebBundleURLStreamHandlerService</code> (webbundle:), <code>JDBCDriverURLStreamHandlerService</code>, <code>EclipseLinkEnhancer</code></dd></dl>
+</article>
+
+<article class="cls" id="c-Constants">
+  <header><h4>Constants</h4><span class="kind">final class · constantes</span><span class="loc">41 líneas</span></header>
+  <p><code>REFERENCE_PROTOCOL = "reference:"</code> (bundles leídos in situ por Felix o Equinox, sin copiarse a la caché) y <code>FILE_PROTOCOL = "file:"</code>.</p>
+  <dl class="rel"><dt>Usada por</dt><dd>OSGiBundleArchive. Las clases <code>Constants</code> de otros módulos son distintas; no dependen de esta.</dd></dl>
+</article>
+
+<article class="cls" id="c-package-info">
+  <header><h4>package-info</h4><span class="kind">documentación</span><span class="loc">20 líneas</span></header>
+  <p>Solo el javadoc del paquete: "Base classes for the OSGi JavaEE modules".</p>
+</article>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="referencias">Referencias externas</h2>
+<p>Qué clases de este módulo usa cada uno de los demás. Es útil para medir el impacto de cualquier cambio aquí.</p>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Módulo</th><th>Clases de osgi-javaee-base que usa</th><th>Para qué</th></tr></thead>
+  <tbody>
+    <tr><td><code>osgi-web-container</code></td><td>AbstractOSGiDeployer, OSGiDeploymentRequest, OSGiUndeploymentRequest, OSGiDeploymentContext, OSGiArchiveHandler, OSGiJavaEEArchive, OSGiBundleArchive, BundleResource, BundleClassLoader, OSGiApplicationInfo, OSGiContainer, DeploymentException, JarHelper, Extender</td><td>Despliegue de WABs: <code>OSGiWebDeployer</code>, <code>WAB</code>, <code>OSGiWebDeploymentContext</code>, detección de colisiones de context path, eventos WAB, URL <code>webbundle:</code></td></tr>
+    <tr><td><code>osgi-ejb-container</code></td><td>AbstractOSGiDeployer, OSGiDeploymentRequest, OSGiUndeploymentRequest, OSGiDeploymentContext, OSGiArchiveHandler, OSGiJavaEEArchive, OSGiBundleArchive, URIable, BundleClassLoader, OSGiApplicationInfo, OSGiContainer, Extender</td><td>Despliegue de bundles EJB (<code>Export-EJB</code>) y registro de EJBs como servicios OSGi</td></tr>
+    <tr><td><code>osgi-jpa</code></td><td>OSGiBundleArchive, BundleResource, BundleClassLoader, OSGiArchiveHandler, JarHelper, Extender</td><td>Detectar <code>persistence.xml</code> y regenerar el bundle con las entidades enriquecidas (<code>EclipseLinkEnhancer</code>)</td></tr>
+    <tr><td><code>osgi-jdbc</code></td><td>JarHelper, Extender</td><td>Convertir drivers JDBC en bundles (URL de drivers)</td></tr>
+    <tr><td><code>osgi-jta</code></td><td>Extender</td><td>Publicar servicios de transacción tras arrancar GlassFish</td></tr>
+    <tr><td><code>osgi-ee-resources</code></td><td>Extender</td><td>Publicar recursos JDBC y JMS como servicios</td></tr>
+    <tr><td><code>osgi-http</code></td><td>Extender</td><td>Arrancar el runtime Whiteboard y HttpService cuando GlassFish está listo</td></tr>
+    <tr><td><code>osgi-cdi</code></td><td>Ninguna</td><td>Es independiente; se engancha a Weld como extensión CDI</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="observaciones">Observaciones del código</h2>
+<p>Hallazgos de la lectura, útiles para planificar mejoras. Ninguno impide el funcionamiento actual: los tests de integración pasan en GlassFish 8.0.4.</p>
+<div class="obs">
+  <article><h4><span class="sev m">medio</span>Referencias de servicio que no se liberan</h4><p><code>OSGiContainer</code> llama a <code>context.getService()</code> en <code>deploy</code>, <code>undeploy</code>, <code>selectDeployer</code> y los hilos de deployers, sin <code>ungetService()</code>. <code>ExtenderTracker.removedService</code> vuelve a pedir el servicio en vez de usar el objeto recibido. El contador de uso de los servicios solo crece; no rompe nada en la práctica, pero impide que un deployer se libere limpiamente.</p></article>
+  <article><h4><span class="sev m">medio</span>Hilos creados a mano</h4><p><code>DeployerAddedThread</code>, <code>DeployerRemovedThread</code>, el sondeo de <code>GlassFishServerTracker</code> (cuyo executor nunca se cierra) y los pipes de <code>JarHelper.makeJar</code> y <code>OSGiBundleArchive.getInputStream</code> crean hilos sin nombre ni gestión. Las excepciones de esos hilos se pierden.</p></article>
+  <article><h4><span class="sev l">bajo</span>Contexto nulo al expandir</h4><p>En <code>OSGiDeploymentRequest.prepare()</code>, <code>expandIfNeeded()</code> se ejecuta antes de crear <code>dc</code>, así que <code>OSGiArchiveHandler.expand(archive, target, dc)</code> recibe <code>null</code> como contexto. Funciona porque la implementación heredada no lo usa, pero es frágil ante cambios en GlassFish.</p></article>
+  <article><h4><span class="sev l">bajo</span>Sondeo de arranque</h4><p><code>ExtenderManager</code> sondea <code>GlassFish.getStatus()</code> cada segundo. El comentario dice que es necesario para GlassFish &lt; 4.0; en GlassFish 8 podría reemplazarse por el evento <code>SERVER_READY</code>.</p></article>
+  <article><h4><span class="sev l">bajo</span>Código muerto</h4><p><code>TempBundleClassLoader</code>, <code>ReflectiveClassFinder</code> y <code>OSGiBundleArchive.getEntryPaths2()</code> no tienen usos en el repositorio.  Además hay dos criterios distintos de "bundle listo": <code>JavaEEExtender</code> mira el evento <code>LAZY_ACTIVATION</code> y <code>OSGiContainer.isReady</code> mira la cabecera <code>Bundle-ActivationPolicy</code>. <code>ReflectiveClassFinder</code> además no funcionaría con el sistema de módulos de JDK 21 sin <code>--add-opens</code>.</p></article>
+  <article><h4><span class="sev l">bajo</span>Tipos crudos y APIs antiguas</h4><p>Uso extendido de <code>ServiceTracker</code>, <code>ServiceReference</code> y <code>Dictionary</code> sin genéricos (con <code>@SuppressWarnings("unchecked")</code>), <code>Properties</code> como <code>Dictionary</code> y <code>Globals</code> para obtener servicios de GlassFish. Con OSGi R8 se puede tipar todo.</p></article>
+  <article><h4><span class="sev i">info</span>Serialización global</h4><p>Todo despliegue y repliegue pasa por métodos <code>synchronized</code> de <code>OSGiContainer</code> y por un executor de un solo hilo en <code>JavaEEExtender</code>. Es una decisión consciente (no se sabe si <code>Deployment</code> es seguro en concurrencia) y explica que muchos bundles se desplieguen uno tras otro.</p></article>
+  <article><h4><span class="sev i">info</span>Detalles menores</h4><p>El <code>LOGGER</code> de <code>OSGiDeploymentRequest</code> se crea con la clase <code>OSGiUndeploymentRequest</code> (mismo paquete, sin efecto). <code>AbstractOSGiDeployer.undeployAll</code> registra los fallos con el nombre de clase <code>"WebExtender"</code>. <code>OSGiApplicationInfo</code> se registra con propiedades vacías, sin nombre de aplicación ni context path que permitan filtrar.</p></article>
+</div>
+
+<footer>Generado a partir del código de la rama <code>feature/glassfish-8.0.4-compatibility</code> (FighterFish 4.0.0-SNAPSHOT, GlassFish 8.0.4). Siguiente módulo de la serie: osgi-web-container.</footer>
+</main>
+</div>
